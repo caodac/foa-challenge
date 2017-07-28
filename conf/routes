@@ -3,8 +3,11 @@
 # ~~~~
 
 # An example controller showing a sample home page
-GET     /                           controllers.HomeController.index
+GET     /    	controllers.ChallengeController.index
+GET	/challenge/:id	controllers.ChallengeController.challenge(id: String, stage: Int ?= 1)
+GET	/challenge	controllers.ChallengeController.welcome
+GET	/challenge/	controllers.ChallengeController.welcome
 
 # Map static resources from the /public folder to the /assets URL path
-GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
-->          /webjars                webjars.Routes
+GET     /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
+->	/webjars       webjars.Routes

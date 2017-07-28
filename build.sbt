@@ -17,5 +17,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-mailer-guice" % "6.0.0",
   "org.webjars" %% "webjars-play" % "2.6.0",
   "org.webjars" % "bootstrap" % "3.3.7",
-  "org.webjars" % "jquery" % "3.2.1"
+  "org.webjars" % "jquery" % "3.2.1",
+  "org.webjars" % "font-awesome" % "4.7.0"
 )
