@@ -1,3 +1,18 @@
 @import play.twirl.api.HtmlFormat
 @this(webjars: org.webjars.play.WebJarsUtil)
-@main(webjars, "Ceremony means nothing to her. The challenge is all.")(HtmlFormat.empty)(HtmlFormat.empty)(HtmlFormat.empty)
+@main(webjars, "The Challenge")(HtmlFormat.empty){
+<div class="wrapper">
+  <div class="header header-filter"
+       style="background-image: url('@routes.Assets.versioned("images/riskin-sbir.jpg")'); height:100vh;">
+    <div class="container">
+      <div class="row">
+	<div class="col-md-12">
+	  <div class="brand" style="margin-top:30vh;">
+	    <h1>Accolades mean nothing to her. The challenge is all.</h1>
+	  </div>
+	</div>
+      </div>
+    </div>
+  </div>
+</div>
+}(HtmlFormat.empty)(HtmlFormat.empty)

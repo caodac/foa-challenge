@@ -1,10 +1,10 @@
-@(webjars: org.webjars.play.WebJarsUtil, title: String)(nav: Html)(header: Html)(content: Html)
+@(webjars: org.webjars.play.WebJarsUtil, title: String)(nav: Html)(header: Html)(footer: Html)(content: Html)
 
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1" />
-    <link rel="icon" type="image/vnd.microsoft.icon" href='@routes.Assets.versioned("images/favicon.ico")'>
+    <link rel="icon" type="image/png" href='@routes.Assets.versioned("images/favicon.png")'>
     <title>@title</title>
     <meta content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0' name='viewport'/>
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
@@ -18,10 +18,10 @@
   <body class="index-page">
     @nav
     @header
-    
     <div class="main main-raised">
       @content
     </div>
+    @footer
   </body>
   <head>
     <script type='text/javascript' src='@webjars.url("jquery.min.js")'></script>

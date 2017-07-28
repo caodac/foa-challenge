@@ -12,7 +12,7 @@
 	  <nav aria-label="Page navigation" style="text-align:center;">
 	    <ul class="pagination">
 	      @for(i <- 1 to 8) {
-		<li @if(i==stage){class="active"}><a href='@routes.ChallengeController.challenge(id,i)'>@i</a></li>
+		<li @if(i==stage){class="active"}><a href='@routes.ChallengeController.challenge(id,i)'><span style="color:white;">@i</a></a></li>
 	      }
 	    </ul>
 	  </nav>	      
