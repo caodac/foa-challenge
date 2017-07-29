@@ -1,7 +1,7 @@
 @(name: String)
 <nav class="navbar navbar-transparent navbar-fixed-top
 	    navbar-color-on-scroll">
-  <div class="container">
+  <div class="container-fluid">
     <div class="navbar-header">
       <button type="button" class="navbar-toggle"
 	      data-toggle="collapse" data-target="#navigation-index">
@@ -10,11 +10,11 @@
 	<span class="icon-bar"></span>
 	<span class="icon-bar"></span>
       </button>
+      <span class="navbar-brand">Hi @name!</span> 
     </div>
     
     <div class="collapse navbar-collapse" id="navigation-index">
       <ul class="nav navbar-nav navbar-right">
-	<li>Hi @name!</li>
       </ul>
     </div>
   </div>

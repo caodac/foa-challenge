@@ -3,12 +3,14 @@ organization := "ncats"
 
 version := "1.0-SNAPSHOT"
 
-lazy val root = (project in file(".")).enablePlugins(PlayJava)
+lazy val root = (project in file(".")).enablePlugins(PlayJava, PlayEbean)
 
 scalaVersion := "2.11.11"
 
 libraryDependencies ++= Seq(
   guice,
+  jdbc,
+  "com.h2database" % "h2" % "1.4.194",
   "com.typesafe.play" %% "play-json" % "2.6.0",
   "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0",
   "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.0",
