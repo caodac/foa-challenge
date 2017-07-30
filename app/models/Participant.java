@@ -13,13 +13,15 @@ public class Participant extends Model {
     
     @Id public UUID id;
     @Version Long version;
-    final Long created = System.currentTimeMillis();
+    public Long created;
+    public Long updated;
     
     @Column(nullable=false,unique=true)
     public String email;
     public String firstname;
     public String lastname;
 
+    @Column(nullable=false)
     public Integer stage;
 
     public Participant () {

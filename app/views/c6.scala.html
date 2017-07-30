@@ -1,0 +1,42 @@
+@import play.twirl.api.HtmlFormat
+@import models.Participant
+
+@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+
+@main(webjars, "NCATS Translator Challenge"){
+@navbar(part)
+}{
+@header(part, 6, "Clinical Outcome Pathway", "Challenge 6")
+}{
+@footer()
+}{
+<div class="section section-basic">
+  <div class="section section-basic">
+    <div class="container">
+      <div class="well well-lg">
+        We do not understand how all approved drugs
+        work, but for a majority of them we can construct a clinical outcome
+        pathway that explains the molecular pathophysiology of their action.
+        A clinical outcome pathway can be thought of as the efficacy
+        equivalent of an adverse outcome pathway; it explains how a
+        molecular initiating event precipitates a series of key events which
+        manifest as a clinical outcome, beginning with (1) a molecular
+        initiating event physically interacting with (2) a biological target,
+        which affects (3) a biological pathway or series of pathways that are
+        relevant to (4) a particular cell type or tissue that manifest as (5)
+        a clinical phenotype or endpoint which together reflect (6) a disease
+        or condition. 
+        
+        <br><br>For each of the drug-disease pairs listed below, construct a
+        clinical outcome pathway that best explains how the drug effects its
+        action.  Please also provide a confidence for each clinical outcome
+        pathway assertion.  Please report “clinical outcome pathway is not
+        understood” in cases where the pathophysiology is not known in the
+        literature and also provide a confidence for this assertion.  For
+        each element of a clinical outcome pathway, resolve the relevant
+        entity to an existing dictionary ID/ontology term.
+     </div>
+    </div>
+  </div>
+</div>
+}

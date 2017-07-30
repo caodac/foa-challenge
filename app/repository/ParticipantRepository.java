@@ -8,7 +8,9 @@ import io.ebean.Transaction;
 import play.db.ebean.EbeanConfig;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.UUID;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
@@ -18,6 +20,7 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
  * A repository that executes database operations in a different
  * execution context.
  */
+@Singleton
 public class ParticipantRepository {
 
     private final EbeanServer ebeanServer;
@@ -30,10 +33,48 @@ public class ParticipantRepository {
         this.executionContext = executionContext;
     }
 
-    public CompletionStage<UUID> insert (Participant participant) {
+    public CompletionStage<UUID> insert (Participant part) {
         return supplyAsync(() -> {
-             ebeanServer.insert(participant);
-             return participant.id;
-        }, executionContext);
+                part.created = System.currentTimeMillis();
+                part.save();
+                return part.id;
+            }, executionContext);
+    }
+    
+    public CompletionStage<Participant> fetch (UUID id) {
+        return supplyAsync (() -> {
+                return Participant.finder.byId(id);
+            }, executionContext);
+    }
+
+    public CompletionStage<Participant> fetch (String email) {
+        return supplyAsync (() -> {
+                return Participant.finder.query()
+                    .where().eq("email", email).findUnique();
+            }, executionContext);
+    }
+
+    public CompletionStage<Optional<Participant>> nextStage (Participant part) {
+        return supplyAsync (() -> {
+                Optional<Participant> ret = Optional.empty();
+                Transaction tx = ebeanServer.beginTransaction();
+                try {
+                    part.stage = part.stage+1;
+                    part.updated = System.currentTimeMillis();
+                    part.update();
+                    tx.commit();
+                    ret = Optional.of(part);
+                }
+                finally {
+                    tx.end();
+                }
+                return ret;
+            }, executionContext);
+    }
+
+    public CompletionStage<List<Participant>> list () {
+        return supplyAsync (() -> {
+                return Participant.finder.all();
+            }, executionContext);
     }
 }

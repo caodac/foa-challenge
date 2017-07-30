@@ -1,0 +1,19 @@
+@import play.twirl.api.HtmlFormat
+@import models.Participant
+
+@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+
+@main(webjars, "Congratulations!"){
+@navbar(part)
+}{
+@header(part, 8, "Congratulations!", "Challenge completes")
+}{
+@footer()
+}{
+<div class="section section-basic">
+  <div class="section section-basic">
+    <div class="container">
+    </div>
+  </div>
+</div>
+}

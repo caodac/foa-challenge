@@ -1,25 +1,30 @@
+@import models.Participant
 
-@(id: String, stage: Int, sub: String = null)
+@(part: Participant, stage: Int, title: String, sub: String = null)
 <div class="wrapper">
   <div class="header header-filter"
        style="background-image: url('@routes.Assets.versioned("images/riskin-sbir.jpg")');">
     <div class="container">
       <div class="row">
-	<div class="col-md-12">
-	  <div class="brand">
-	    <h1>Challenge @stage</h1>
-	    @if(sub != null) {
-	    <h3>@sub</h3>
-	    }
-	  </div>
-	  <nav aria-label="Page navigation" style="text-align:center;">
-	    <ul class="pagination">
-	      @for(i <- 1 to 8) {
-		<li @if(i==stage){class="active"}><a href='@routes.ChallengeController.challenge(id,i)'><span style="color:white;">@i</a></a></li>
-	      }
-	    </ul>
-	  </nav>	      
-	</div>
+        <div class="col-md-12">
+          <div class="brand">
+            <h1>@title</h1>
+            @if(sub != null) {
+            <h3>@sub</h3>
+            }
+          </div>
+          <nav aria-label="Page navigation" style="text-align:center;">
+            <ul class="pagination">
+              @for(i <- 1 to 8) {
+	        @if(i <= part.stage) {
+		   <li @if(i==stage){class="active"}><a href='@routes.ChallengeController.stage(part.id.toString,i)'><span style="color:white;">@i</span></a></li>
+		} else {
+		   <li><span style="color:white;">@i</span></li>
+	        }
+              }
+            </ul>
+          </nav>              
+        </div>
       </div>
     </div>
   </div>
