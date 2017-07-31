@@ -27,8 +27,13 @@ import repository.*;
  */
 public class ChallengeController extends Controller {
 
+    /*
+     * views
+     */
     @Inject views.html.Challenge challenge;
     @Inject views.html.Welcome welcome;
+    @Inject views.html.Puzzle puzzle;
+    
     @Inject ParticipantRepository repo;
     @Inject HttpExecutionContext httpExecutionContext;
     @Inject Configuration config;
@@ -62,7 +67,7 @@ public class ChallengeController extends Controller {
      */
     public Result index() {
         //return ok(views.txt.nothing.render());
-        return ok (welcome.render());
+        return ok (puzzle.render());
     }
 
     public CompletionStage<Result> challenge (final String id) {
@@ -108,6 +113,10 @@ public class ChallengeController extends Controller {
 
     public Result welcome () {
         return ok (welcome.render());
+    }
+
+    public Result puzzle () {
+        return ok (puzzle.render());
     }
 
     @BodyParser.Of(value = BodyParser.Json.class)

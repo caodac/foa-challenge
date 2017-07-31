@@ -8,6 +8,7 @@ GET	/:id/@participant	controllers.ChallengeController.participant(id: String)
 GET	/:id/@next	controllers.ChallengeController.next(id: String)
 GET	/@list		controllers.ChallengeController.list
 
+GET	/start	controllers.ChallengeController.puzzle
 GET     /    	controllers.ChallengeController.welcome
 POST	/	controllers.ChallengeController.register
 GET	/:id	controllers.ChallengeController.challenge(id: String)
