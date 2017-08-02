@@ -1,10 +1,13 @@
 package models;
 
-import java.util.UUID;
-import javax.persistence.*;
-import java.sql.Timestamp;
-import io.ebean.Model;
 import io.ebean.Finder;
+import io.ebean.Model;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Version;
+import java.util.UUID;
 
 @Entity
 public class Participant extends Model {
@@ -23,6 +26,9 @@ public class Participant extends Model {
 
     @Column(nullable=false)
     public Integer stage;
+
+    // has C3 been solved?
+    public Boolean c3Solved;
 
     public Participant () {
     }

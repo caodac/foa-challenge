@@ -7,7 +7,6 @@ import play.Environment;
 import play.Logger;
 import play.data.DynamicForm;
 import play.data.FormFactory;
-import play.data.Form;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
 import play.mvc.BodyParser;
@@ -143,7 +142,9 @@ public class ChallengeController extends Controller {
         if (!json.has("lastname"))
             return badRequestAsync ("No \"lastname\" field provided!");
         part.lastname = json.get("lastname").asText();
-        
+
+        part.c3Solved = false;
+
         return repo.insert(part).thenApplyAsync(id -> {
                 return ok("Successfully registered participant: "+id+"\n");
             }, httpExecutionContext.current()).exceptionally(t -> {
@@ -230,21 +231,32 @@ public class ChallengeController extends Controller {
                 });
     }
 
-    public Result handleC3Request() {
+    public CompletionStage<Result> handleC3Request() {
         DynamicForm dynamicForm = formFactory.form().bindFromRequest();
         String email = dynamicForm.get("email");
         String magic = dynamicForm.get("magic");
 
-        // does this email exist?
-
-        // if so, did they provide the correct magic?
-
         // magic is simply the base64 encoded email
         String myMagic = Base64.getEncoder().encodeToString(email.getBytes());
         boolean magicIsCorrect = magic.equals(myMagic);
-        if (!magicIsCorrect)
-            return notFound();
 
-        return ok("XXX");
+        // does this email exist?
+        return repo.fetch(email).thenApplyAsync(part -> {
+            if (part == null)
+                return badRequest("This email address doesn't correspond to a valid participant.\n");
+            // exists, have they solved C3 before?
+            if (part.c3Solved)
+                return ok("Challenge 3 has been solved.\n");
+            else {
+                if (!magicIsCorrect)
+                    return badRequest("Sorry, invalid magic value specified. Try again.\n");
+                part.c3Solved = true;
+                repo.nextStage(part);
+                return ok("Success.\n");
+            }
+        }, httpExecutionContext.current()).exceptionally(t -> {
+            return badRequest("This email address doesn't correspond to a valid participant.\n");
+        });
+
     }
 }
