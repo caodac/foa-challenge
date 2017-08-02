@@ -151,9 +151,11 @@ public class ChallengeController extends Controller {
     }
 
     public CompletionStage<Result> participant (String query) {
+        /*
         if (env.isProd())
             return async (redirect
                           (routes.ChallengeController.welcome().url()));
+        */
         
         int pos = query.indexOf('@');
         if (pos > 0) { // email
@@ -183,9 +185,11 @@ public class ChallengeController extends Controller {
     }
 
     public CompletionStage<Result> next (String id) {
+        /*
         if (env.isProd())
             return async (redirect
                           (routes.ChallengeController.welcome().url()));
+        */
         
         try {
             UUID uuid = UUID.fromString(id);
@@ -215,9 +219,12 @@ public class ChallengeController extends Controller {
     }
 
     public CompletionStage<Result> list () {
+        /*
         if (env.isProd())
             return async (redirect
                           (routes.ChallengeController.welcome().url()));
+        */
+        
         return repo.list().thenApplyAsync(list -> {
                 return ok (Json.toJson(list));
             }, httpExecutionContext.current()).exceptionally(t -> {
