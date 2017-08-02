@@ -15,9 +15,7 @@ import play.mvc.Result;
 import repository.ParticipantRepository;
 
 import javax.inject.Inject;
-import java.util.Base64;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -250,20 +248,102 @@ public class ChallengeController extends Controller {
         // does this email exist?
         return repo.fetch(email).thenApplyAsync(part -> {
             if (part == null)
-                return badRequest("This email address doesn't correspond to a valid participant.\n");
+                return badRequest("This email address doesn't correspond"
+                                  +" to a valid participant.\n");
             // exists, have they solved C3 before?
             if (part.c3Solved)
                 return ok("Challenge 3 has been solved.\n");
             else {
                 if (!magicIsCorrect)
-                    return badRequest("Sorry, invalid magic value specified. Try again.\n");
+                    return badRequest("Sorry, invalid magic value "
+                                      +"specified. Try again.\n");
                 part.c3Solved = true;
                 repo.nextStage(part);
                 return ok("Success.\n");
             }
         }, httpExecutionContext.current()).exceptionally(t -> {
-            return badRequest("This email address doesn't correspond to a valid participant.\n");
+            return badRequest("This email address doesn't correspond "
+                              +"to a valid participant.\n");
         });
+    }
 
+    boolean checkC5 (Participant part, Map<String, String[]> data) {
+        Configuration conf = config.getConfig("challenge").getConfig("c5");
+        Configuration optional = conf.getConfig("optional");
+        
+        for (Map.Entry<String, String[]> me : data.entrySet()) {
+            String[] val = me.getValue();
+            if (val.length > 0 && !val[0].equals("")) {
+                Logger.info(me.getKey()+": "+val[0]);
+                try {
+                    int iv = Integer.parseInt(val[0]);
+                    Integer ans = conf.getInt(me.getKey());
+                    if (ans == null)
+                        ans = optional.getInt(me.getKey());
+
+                    if (ans != null && !ans.equals(iv)) {
+                        Logger.debug
+                            (part.id+": incorrect answer provided for "
+                             +me.getKey()+"="+iv);
+                        return false;
+                    }
+                }
+                catch (NumberFormatException ex) {
+                    Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
+                    return false;
+                }
+            }
+        }
+        Logger.debug(part.id+": passes C5!");
+        
+        return true;
+    }
+
+    @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
+    public CompletionStage<Result> submit (String id, Integer stage) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.fetch(uuid).thenApplyAsync(part -> {
+                    if (part != null) {
+                        if (stage > part.stage || stage < 1)
+                            return redirect(routes.ChallengeController
+                                            .challenge(id).url());
+                        
+                        Map<String, String[]> data =
+                            request().body().asFormUrlEncoded();
+                        // check the answer
+                        switch (stage) {
+                        case 1:
+                        case 2:
+                        case 3:
+                        case 4:
+                            break;
+                            
+                        case 5:
+                            if (stage.equals(part.stage)
+                                && checkC5 (part, data)) {
+                                repo.nextStage(part); // advance to next stage
+                            }
+                            break;
+                            
+                        case 6:
+                        case 7:
+                            break;
+                        }
+
+                        return redirect (routes.ChallengeController.challenge
+                                         (part.id.toString()));
+                    }
+                    
+                    return redirect (routes.ChallengeController.welcome());
+                }, httpExecutionContext.current()).exceptionally(t -> {
+                        Logger.error("Failed to fetch participant: "+id, t);
+                        return redirect (routes.ChallengeController.welcome());
+                    });
+        }
+        catch (Exception ex) {
+            Logger.warn("Not a valid challenge id: "+id);
+            return async (ok (welcome.render()));
+        }
     }
 }

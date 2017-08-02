@@ -8,12 +8,20 @@ GET	/:id/@participant	controllers.ChallengeController.participant(id: String)
 GET	/:id/@next	controllers.ChallengeController.next(id: String)
 GET	/@list		controllers.ChallengeController.list
 
+##
+## main resources
+##
 GET	/start	controllers.ChallengeController.puzzle
 GET     /    	controllers.ChallengeController.welcome
 POST	/	controllers.ChallengeController.register
 GET	/:id	controllers.ChallengeController.challenge(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
 GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
+#
+# should really figure out how to properly handle CSRF filter
+#
++ nocsrf
+POST	/:id/:stage	controllers.ChallengeController.submit(id: String, stage: Int)
 
 POST /c3/handler controllers.ChallengeController.handleC3Request()
 

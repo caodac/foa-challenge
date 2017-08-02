@@ -24,99 +24,118 @@
       all questions in this challenge. The participant is free to use any
       available resources to answer the questions.
 
-      <div class="panel panel-primary" style="margin-top:20px">
-        <div class="panel-heading">
-          <h3 class="panel-title"><b>1.</b> Graph Metrics</h3>
-        </div>
-        <div class="panel-body">
-          <div class="input-group">
-            <input type="text" class="form-control"
-                   placeholder="Number of nodes"
-                   aria-describedby="node-size">
-            <input type="text" class="form-control"
-                   placeholder="Number of edges"
-                   aria-describedby="edge-size">
-            <input type="text" class="form-control"
-                   placeholder="Maximum degree"
-                   aria-describedby="max-degree">           
-          </div>          
-        </div>
-      </div>
-
-      <div class="panel panel-primary" style="margin-top:20px">
-        <div class="panel-heading">
-          <h3 class="panel-title"><b>2.</b> Shortest Paths
-        </div>
-        <div class="panel-body">
-          Number of shortest paths between nodes 123 and 456:
-          <div class="input-group">
-            <input type="text" class="form-control"
-                   placeholder="Number of paths"
-                   aria-describedby="shortest-path-count">
+      <form id="c5-form" class="form-inline" 
+            method="POST"
+            action="@controllers.routes.ChallengeController.submit(part.id.toString, 5)">
+        <div class="panel panel-@if(part.stage>5){success}else{primary}"
+             style="margin-top:20px">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>1.</b> Graph Metrics</h3>
           </div>
-          
-          <br>The length of the shortest path between nodes 7859 and 3245:
-          <div class="input-group">
-            <input type="text" class="form-control"
-                   placeholder="Path length"
-                   aria-describedby="shortest-path-length">
-          </div>          
-        </div>
-      </div>
-      
-      <div class="panel panel-primary" style="margin-top:20px">
-        <div class="panel-heading">
-          <h3 class="panel-title"><b>3.</b> Connected Components</h3>
-        </div>
-        <div class="panel-body">
-          <div class="input-group">
-            <input type="text" class="form-control"
-                   placeholder="Number of connected components"
-                   aria-describedby="connected-component-count">
-            <input type="text" class="form-control"
-                   placeholder="Size (node count) of largest component"
-                   aria-describedby="connected-component-count">
-          </div>          
-        </div>
-      </div>
-
-      <br>The next two questions are optional, but we highly encourage
-      the participant to answer them in order to get an appreciation of
-      their utility in the context of knowledge engineering, e.g., entity
-      resolution, equivalence relation, knowledge abstraction, etc.
-      
-      <div class="panel panel-default" style="margin-top:20px">
-        <div class="panel-heading">
-          <h3 class="panel-title"><b>4.</b> Maximal Cliques
-        </div>
-        <div class="panel-body">
-          <div class="input-group">
-            <input type="text" class="form-control"
-                   placeholder="Number of maximal cliques"
-                   aria-describedby="clique-count">
-            <input type="text" class="form-control"
-                   placeholder="Size (node count) of maximum clique"
-                   aria-describedby="maxclique-size">
-          </div>                  
-        </div>
-      </div>
-
-      <div class="panel panel-default" style="margin-top:20px">
-        <div class="panel-heading">
-          <h3 class="panel-title"><b>5.</b> Matching Subgraphs
-        </div>
-        <div class="panel-body">
-          Consider the following subgraph, find all occurences of this
-          subgraph in the knowledge hypergraph.
-          <div class="input-group">
-            <input type="text" class="form-control"
-                   placeholder="Number of subgraphs"
-                   aria-describedby="subgraph-count">
+          <div class="panel-body">
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="node-size"
+                     placeholder="Number of nodes"
+                     aria-describedby="node-size" required>
+              <input type="text" class="form-control"
+                     name="edge-size"
+                     placeholder="Number of edges"
+                     aria-describedby="edge-size" required>
+              <input type="text" class="form-control"
+                     name="max-degree"
+                     placeholder="Maximum degree"
+                     aria-describedby="max-degree" required> 
+            </div>          
           </div>
         </div>
-      </div>
-
-      <button class="btn btn-primary" type="submit">Submit</button>
+        
+        <div class="panel panel-@if(part.stage>5){success}else{primary}"
+             style="margin-top:20px">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>2.</b> Shortest Paths
+          </div>
+          <div class="panel-body">
+            Number of shortest paths between nodes 123 and 456:
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="shortest-path-count"
+                     placeholder="Number of paths"
+                     aria-describedby="shortest-path-count" required>
+            </div>
+            
+            <br>The length of the shortest path between nodes 7859 and 3245:
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="shortest-path-length"
+                     placeholder="Path length"
+                     aria-describedby="shortest-path-length" required>
+            </div>          
+          </div>
+        </div>
+        
+        <div class="panel panel-@if(part.stage>5){success}else{primary}"
+             style="margin-top:20px">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>3.</b> Connected Components</h3>
+          </div>
+          <div class="panel-body">
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="connected-component-count"
+                     placeholder="Number of connected components"
+                     aria-describedby="connected-component-count" required>
+              <input type="text" class="form-control"
+                     name="largest-connected-component-size"
+                     placeholder="Size (node count) of largest component"
+                     aria-describedby="largest-connected-component-size" 
+                     required>
+            </div>          
+          </div>
+        </div>
+        
+        <br>The next two questions are optional, but we highly encourage
+        the participant to answer them in order to get an appreciation of
+        their utility in the context of knowledge engineering, e.g., entity
+        resolution, equivalence relation, knowledge abstraction, etc.
+        
+        <div class="panel panel-default" style="margin-top:20px">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>4.</b> Maximal Cliques
+          </div>
+          <div class="panel-body">
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="clique-count"
+                     placeholder="Number of maximal cliques"
+                     aria-describedby="clique-count">
+              <input type="text" class="form-control"
+                     name="maxclique-size"
+                     placeholder="Size (node count) of maximum clique"
+                     aria-describedby="maxclique-size">
+            </div>                  
+          </div>
+        </div>
+        
+        <div class="panel panel-default" style="margin-top:20px">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>5.</b> Matching Subgraphs
+          </div>
+          <div class="panel-body">
+            Consider the following subgraph, find all occurences of this
+            subgraph in the knowledge hypergraph.
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="subgraph-count"
+                     placeholder="Number of subgraphs"
+                     aria-describedby="subgraph-count">
+            </div>
+          </div>
+        </div>
+        
+        <input class="btn btn-@if(part.stage>5){success}else{primary}"
+               type="submit" @if(part.stage>5){disabled}/>
+      </form>
     </div>
   </div>
 </div>
