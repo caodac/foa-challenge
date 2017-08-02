@@ -15,6 +15,8 @@ GET	/:id	controllers.ChallengeController.challenge(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
 GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
 
+POST /c3/handler controllers.ChallengeController.handleC3Request()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
 ->	/webjars       webjars.Routes

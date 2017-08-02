@@ -1,31 +1,35 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import models.Participant;
 import play.Configuration;
 import play.Environment;
 import play.Logger;
-import play.mvc.*;
+import play.data.DynamicForm;
+import play.data.FormFactory;
+import play.data.Form;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
+import play.mvc.BodyParser;
+import play.mvc.Controller;
+import play.mvc.Result;
+import repository.ParticipantRepository;
 
-import java.util.UUID;
-import java.util.Optional;
 import javax.inject.Inject;
-import java.util.concurrent.*;
+import java.util.Base64;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.CompletionStage;
+
 import static java.util.concurrent.CompletableFuture.supplyAsync;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import models.*;
-import repository.*;
 
 /**
  * This controller contains an action to handle HTTP requests
  * to the application's home page.
  */
 public class ChallengeController extends Controller {
+
+    @Inject FormFactory formFactory;
 
     /*
      * views
@@ -231,5 +235,23 @@ public class ChallengeController extends Controller {
                     Logger.error("Failed to fetch participant list!", t);
                     return internalServerError (t.getMessage());
                 });
+    }
+
+    public Result handleC3Request() {
+        DynamicForm dynamicForm = formFactory.form().bindFromRequest();
+        String email = dynamicForm.get("email");
+        String magic = dynamicForm.get("magic");
+
+        // does this email exist?
+
+        // if so, did they provide the correct magic?
+
+        // magic is simply the base64 encoded email
+        String myMagic = Base64.getEncoder().encodeToString(email.getBytes());
+        boolean magicIsCorrect = magic.equals(myMagic);
+        if (!magicIsCorrect)
+            return notFound();
+
+        return ok("XXX");
     }
 }
