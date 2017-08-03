@@ -249,8 +249,11 @@ public class ChallengeController extends Controller {
         return repo.fetch(uuid).thenApplyAsync(part -> {
             if (part != null) {
                 String message = C2ApiTester.main(ws, apiurl);
-                if (message.endsWith("NOT TO PLAY.\n"))
-                    return ok(message+"Challenge 2 has been solved.\n");
+                if (message.endsWith("NOT TO PLAY.\n")) {
+                    part.c2Solved = true;
+                    repo.nextStage(part);
+                    return ok(message + "Challenge 2 has been solved.\n");
+                }
                 else return badRequest(message);
             }
             return ok (welcome.render());

@@ -11,6 +11,13 @@ import java.util.concurrent.ExecutionException;
 
 /**
  * Created by southalln on 8/2/17.
+ *
+ * Some notes ... right now all that is required to pass these tests is to Generate Server using the provided yaml
+ * file and (in my case of using Python Flask) edit the last line of two files:
+ * swagger_server/controllers/games_controller.py: return [InlineResponse200('TICTACTOE', '/games/tictactoe')]
+ * swagger_server/controllers/tictactoe_controller.py: return InlineResponse2001(gameState._player, 9)
+ *
+ * one also needs to figure out how to make their application server publically accessible
  */
 public class C2ApiTester {
     static WSResponse request(WSClient ws, String uri, JsonNode json) throws ExecutionException, InterruptedException {
