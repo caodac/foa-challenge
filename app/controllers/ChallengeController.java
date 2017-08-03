@@ -354,7 +354,6 @@ public class ChallengeController extends Controller {
                 if (diseaseSet.size() != 500)
                     return badRequest("Your calculation failed. Incorrect number of diseases.\n");
                 // check that we got the maximal probability
-                System.out.println("probSum = " + probSum);
                 if (Precision.round(probSum,3) != 424.812)
                     return badRequest("Your calculation failed. The sum of probabilities is not maximal.\n");
 
