@@ -9,9 +9,11 @@ import play.data.DynamicForm;
 import play.data.FormFactory;
 import play.libs.Json;
 import play.libs.concurrent.HttpExecutionContext;
+import play.libs.ws.WSClient;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Result;
+import repository.C2ApiTester;
 import repository.ParticipantRepository;
 
 import javax.inject.Inject;
@@ -41,6 +43,7 @@ public class ChallengeController extends Controller {
     @Inject HttpExecutionContext httpExecutionContext;
     @Inject Configuration config;
     @Inject Environment env;
+    @Inject WSClient ws;
 
     static CompletionStage<Result> badRequestAsync (String mesg) {
         return supplyAsync (() -> {
@@ -143,6 +146,7 @@ public class ChallengeController extends Controller {
             return badRequestAsync ("No \"lastname\" field provided!");
         part.lastname = json.get("lastname").asText();
 
+        part.c2Solved = false;
         part.c3Solved = false;
 
         return repo.insert(part).thenApplyAsync(id -> {
@@ -236,6 +240,26 @@ public class ChallengeController extends Controller {
                     Logger.error("Failed to fetch participant list!", t);
                     return internalServerError (t.getMessage());
                 });
+    }
+
+    public CompletionStage<Result> handleC2Request() {
+        DynamicForm dynamicForm = formFactory.form().bindFromRequest();
+        String id = dynamicForm.get("uuid");
+        String apiurl = dynamicForm.get("API-URI");
+
+        UUID uuid = UUID.fromString(id);
+        return repo.fetch(uuid).thenApplyAsync(part -> {
+            if (part != null) {
+                String message = C2ApiTester.main(ws, apiurl);
+                if (message.endsWith("NOT TO PLAY.\n"))
+                    return ok(message+"Challenge 2 has been solved.\n");
+                else return badRequest(message);
+            }
+            return ok (welcome.render());
+        }, httpExecutionContext.current()).exceptionally(t -> {
+            Logger.error("Failed to fetch participant: "+id, t);
+            return badRequest("This id, "+id+", doesn't correspond to a valid participant.\n");
+        });
     }
 
     public CompletionStage<Result> handleC3Request() {

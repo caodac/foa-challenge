@@ -13,6 +13,17 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
+      <p>
+        SHALL WE PLAY A GAME?
+      </p>
+      <form action=@routes.ChallengeController.handleC2Request()>
+        <input type="hidden" name="uuid" value=@part.id>
+        Please provide the URI to your game agent's API:
+        <input type="text" name="API-URI">
+      </form>
+      <p>
+        For an example Swagger API definition file for a game agent, please see this <a href=@routes.Assets.versioned("resources/example.yaml")>example</a>.
+      </p>
     </div>
   </div>
 </div>

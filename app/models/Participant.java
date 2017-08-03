@@ -27,6 +27,7 @@ public class Participant extends Model {
     @Column(nullable=false)
     public Integer stage;
 
+    public Boolean c2Solved;
     // has C3 been solved?
     public Boolean c3Solved;
 
