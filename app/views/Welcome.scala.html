@@ -1,21 +1,23 @@
 @import play.twirl.api.HtmlFormat
 @this(webjars: org.webjars.play.WebJarsUtil)
 @main(webjars, "The Challenge")(HtmlFormat.empty){
-    <div class="wrapper">
-        <div class="header header-filter"
-        style="background-image: url('@routes.Assets.versioned("images/404.jpg")'); height:100vh;">
-            <div class="container">
-                <div class="row">
-                    <div class="col-md-12">
-                        <div class="brand" style="margin-top:30vh;">
-                        <h1>Turn back. This is an ill-fated voyage.</h1>
-                        <h3>404 Error: File not found</h3>
-                            <h1> </h1>
-                        <img width="211px" alt="NCATS logo. Background detail of sailing ship in mouth of a sea monster, detail from Olaus Magnus' Carta Marina" src=@routes.Assets.versioned("images/ncats-logo.png")>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<div class="wrapper">
+  <div class="header header-filter"
+       style="background-image: url('@routes.Assets.versioned("images/404.jpg")'); height:100vh;">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="brand" style="margin-top:30vh;">
+            <h1>Turn back. This is an ill-fated voyage.</h1>
+            <h3>404 Error: File not found</h3>
+            <h1> </h1>
+          </div>
         </div>
+      </div>
+      <div style="position:fixed;bottom:20px;left:20px;background:ghostwhite;border-radius:0.5em;">
+        <img width="211px" alt="NCATS logo. Background detail of sailing ship in mouth of a sea monster, detail from Olaus Magnus' Carta Marina" src=@routes.Assets.versioned("images/ncats-logo.png")>
+      </div>
     </div>
+  </div>
+</div>
 }(HtmlFormat.empty)(HtmlFormat.empty)
