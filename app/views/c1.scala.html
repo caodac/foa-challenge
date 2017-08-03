@@ -16,8 +16,8 @@
       <form id="c1-form" class="form-inline" 
             method="POST"
             action="@controllers.routes.ChallengeController.submit(part.id.toString, 1)">
-        <input class="btn btn-primary" type="submit" value="Next"
-               @if(part.stage>1){disabled}/>
+        <input class="btn btn-@if(part.stage>1){success}else{primary}"
+               type="submit" value="Next" @if(part.stage>1){disabled}/>
       </form>
     </div>
   </div>

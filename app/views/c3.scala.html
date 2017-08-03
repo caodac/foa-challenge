@@ -13,20 +13,25 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      <p>
       If Sartre wrote software his famous quote would likely be <i>"Hell is other peoples code"</i>.
-      </p>
-        <p>Since the project
-      will involve working with some pre-existing code, this stage will test your patience with some one elses code.
-        </p>
-      <p>
-      The aim of this challenge is to download and run the Python notebook available
-        <a href="@routes.Assets.versioned("notebooks/Challenge3.ipynb")">here</a>. This will require
-      you to setup a <a href="http://jupyter.org/">Jupyter</a> environment, install any required Python packages and
-        fix the code so that it runs.
-        </p>
-      <p>If you're succcessful there should be no errors and an HTTP 200 status code. You will progress to the next stage
-        of the challenge by simply reloading this page.
+
+      <br><br>Since the project will involve working with some pre-existing
+      code, this stage will test your patience with some one elses code.
+
+      <br><br>The aim of this challenge is to download and run the Python
+      notebook available
+      <a href="@routes.Assets.versioned("notebooks/Challenge3.ipynb")">here</a>.
+      This will require you to setup a <a href="http://jupyter.org/">Jupyter</a>
+      environment, install any required Python packages and fix the code
+      so that it runs.
+
+      <br><br>If you're succcessful there should be no errors and an
+      HTTP <code>200</code>
+      status code. You can progress to the next stage of the challenge by
+      clicking on the button below.
+
+      <br><a class="btn btn-@if(part.stage>3){success}else{primary}"
+             href="@controllers.routes.ChallengeController.challenge(part.id.toString)" @if(part.stage>3){disabled}>Next</a>
       </p>
     </div>
   </div>
