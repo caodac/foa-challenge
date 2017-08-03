@@ -1,19 +1,60 @@
-@import play.twirl.api.HtmlFormat
 @import models.Participant
 
 @(webjars: org.webjars.play.WebJarsUtil, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
-@navbar(part)
-}{
-@header(part, 7, "Challenge 7", "TBD")
-}{
-@footer()
-}{
-<div class="section section-basic">
-  <div class="section section-basic">
-    <div class="container">
+@main(webjars, "NCATS Translator Challenge") {
+    @navbar(part)
+} {
+    @header(part, 7, "Challenge 7", "What should I spend my money on?")
+} {
+    @footer()
+} {
+    <div class="section section-basic">
+        <div class="section section-basic">
+            <div class="container">
+                <p>
+                    <i>So many associations to test, so little money ...</i>
+                </p>
+                <p>
+                    By amassing a team of motivated grad students and a lot of coffee, a group has
+                    amassed a rich dataset of 1,000,000 gene-disease associations. The data is available
+                    <a href="@routes.Assets.versioned("resources/gene-disease-assoc.csv.gz")">here</a> and
+                    lists the gene, disease it is associated with and the probability of the association.
+                </p>
+                <p>
+                    Now the group is looking for funding to validate a subset of these associations. The group is
+                    interested in identifying the subset of associations such that
+                </p>
+                <ol>
+                    <li>the selected associations include every gene and every disease from the
+                        original dataset (there may be repetitions of a gene or disease), and</li>
+                    <li>the sum of the probabilities of the selected associations is maximized</li>
+                </ol>
+                <p>
+                    Can you help them? Your answer should be a CSV file in the form
+                </p>
+                <pre>
+Gene,Disease,Prob
+G1,D1,PROB</pre>
+                <p>where the first line is the header, and then each row is an association between a gene
+                    and a disease and the given probability.
+                </p>
+
+                <form class="form-inline"
+                    method="POST"
+                    enctype="multipart/form-data"
+                    action='@controllers.routes.ChallengeController.handleC7Request(part.id.toString)'>
+                    <input type="hidden" name="uuid" value="@part.id">
+                    Upload the CSV file containing the selected associations:
+                    <div class="input-group">
+                        <input type="file" name="c7assoc" accept="text/csv" placeholder="API endpoint">
+                    </div>
+                    <br><input class="btn btn-@if(part.stage > 7) {success} else {primary}"
+                type="submit" @if(part.stage > 7) {disabled}/>
+                </form>
+
+
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 }

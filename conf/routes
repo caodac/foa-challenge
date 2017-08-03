@@ -25,6 +25,8 @@ POST	/:id	controllers.ChallengeController.submit(id: String, stage: Int)
 
 POST /c3/handler controllers.ChallengeController.handleC3Request()
 POST /c2/handler controllers.ChallengeController.handleC2Request()
++ nocsrf
+POST /c7/handler controllers.ChallengeController.handleC7Request(id: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)

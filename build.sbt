@@ -21,5 +21,7 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.6.0",
   "org.webjars" % "bootstrap" % "3.3.7",
   "org.webjars" % "jquery" % "3.2.1",
-  "org.webjars" % "font-awesome" % "4.7.0"
+  "org.webjars" % "font-awesome" % "4.7.0",
+  "net.sf.opencsv" % "opencsv" % "2.3",
+  "org.apache.commons" % "commons-math3" % "3.6.1"
 )
