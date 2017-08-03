@@ -16,6 +16,7 @@ import repository.ParticipantRepository;
 
 import javax.inject.Inject;
 import java.util.*;
+import java.io.File;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -40,7 +41,7 @@ public class ChallengeController extends Controller {
     @Inject Configuration config;
     @Inject Environment env;
 
-    static CompletionStage<Result> badRequestAsync (String mesg) {
+    CompletionStage<Result> badRequestAsync (String mesg) {
         return supplyAsync (() -> {
                 return badRequest (mesg);
             }); 
@@ -55,9 +56,9 @@ public class ChallengeController extends Controller {
     public Integer getMaxStage () {
         Configuration value = config.getConfig("challenge");
         if (value != null) {
-            return value.getInt("maxStage");
+            return value.getInt("max-stage", 0);
         }
-        return null;
+        return 0;
     }
     
     /**
@@ -98,6 +99,19 @@ public class ChallengeController extends Controller {
                         if (stage > part.stage || stage < 1)
                             return redirect(routes.ChallengeController
                                             .challenge(id).url());
+
+                        String action = request().getQueryString("action");
+                        if (action != null
+                            && "download".equalsIgnoreCase(action)) {
+                            String file = config.getConfig("challenge")
+                                .getConfig("c5").getString("graph-file");
+                            File f = env.getFile(file);
+                            if (f != null) {
+                                Logger.debug(part.id+": download file "+f);
+                                return ok (f, false);
+                            }
+                        }
+                        
                         return ok (challenge.render(part, stage));
                     }
                     return ok (welcome.render());
@@ -140,8 +154,6 @@ public class ChallengeController extends Controller {
         if (!json.has("lastname"))
             return badRequestAsync ("No \"lastname\" field provided!");
         part.lastname = json.get("lastname").asText();
-
-        part.c3Solved = false;
 
         return repo.insert(part).thenApplyAsync(id -> {
                 return ok("Successfully registered participant: "+id+"\n");
@@ -251,13 +263,12 @@ public class ChallengeController extends Controller {
                 return badRequest("This email address doesn't correspond"
                                   +" to a valid participant.\n");
             // exists, have they solved C3 before?
-            if (part.c3Solved)
+            if (part.stage > 3)
                 return ok("Challenge 3 has been solved.\n");
             else {
                 if (!magicIsCorrect)
                     return badRequest("Sorry, invalid magic value "
                                       +"specified. Try again.\n");
-                part.c3Solved = true;
                 repo.nextStage(part);
                 return ok("Success.\n");
             }
@@ -278,14 +289,19 @@ public class ChallengeController extends Controller {
                 try {
                     int iv = Integer.parseInt(val[0]);
                     Integer ans = conf.getInt(me.getKey());
-                    if (ans == null)
+                    boolean opt = false;
+                    if (ans == null) {
                         ans = optional.getInt(me.getKey());
-
+                        opt = true;
+                    }
+                    
                     if (ans != null && !ans.equals(iv)) {
                         Logger.debug
-                            (part.id+": incorrect answer provided for "
-                             +me.getKey()+"="+iv);
-                        return false;
+                            (part.id+": incorrect "
+                             +me.getKey()+"="+iv+" optional="+opt);
+                        
+                        if (!opt)
+                            return false;
                     }
                 }
                 catch (NumberFormatException ex) {
@@ -299,29 +315,41 @@ public class ChallengeController extends Controller {
         return true;
     }
 
+    boolean checkC4 (Participant part, Map<String, String[]> data) {
+        Logger.debug(part.id+": passes C4!");
+        return true;
+    }
+
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
-    public CompletionStage<Result> submit (String id, Integer stage) {
+    public CompletionStage<Result> submit (final String id,
+                                           final Integer stage) {
         try {
             UUID uuid = UUID.fromString(id);
             return repo.fetch(uuid).thenApplyAsync(part -> {
                     if (part != null) {
-                        if (stage > part.stage || stage < 1)
+                        if (!stage.equals(part.stage))
                             return redirect(routes.ChallengeController
-                                            .challenge(id).url());
+                                            .challenge(id));
                         
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
                         // check the answer
                         switch (stage) {
                         case 1:
+                            // advance to next stage
+                            repo.nextStage(part);
+                            break;
+                            
                         case 2:
                         case 3:
                         case 4:
+                            if (checkC4 (part, data)) {
+                                repo.nextStage(part); // advance to next stage
+                            }
                             break;
                             
                         case 5:
-                            if (stage.equals(part.stage)
-                                && checkC5 (part, data)) {
+                            if (checkC5 (part, data)) {
                                 repo.nextStage(part); // advance to next stage
                             }
                             break;
@@ -331,8 +359,8 @@ public class ChallengeController extends Controller {
                             break;
                         }
 
-                        return redirect (routes.ChallengeController.challenge
-                                         (part.id.toString()));
+                        return redirect
+                            (routes.ChallengeController.challenge(id));
                     }
                     
                     return redirect (routes.ChallengeController.welcome());
@@ -343,7 +371,7 @@ public class ChallengeController extends Controller {
         }
         catch (Exception ex) {
             Logger.warn("Not a valid challenge id: "+id);
-            return async (ok (welcome.render()));
+            return async (redirect (routes.ChallengeController.welcome()));
         }
     }
 }
