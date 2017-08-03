@@ -358,7 +358,7 @@ public class ChallengeController extends Controller {
                     return badRequest("Your calculation failed. The sum of probabilities is not maximal.\n");
 
                 repo.nextStage(part);
-                return ok("Success.\n");
+                return redirect(routes.ChallengeController.challenge(id));
 
             } catch (FileNotFoundException e) {
                 return internalServerError("Error opening CSV file.\n" + e.getMessage() + "\n");
