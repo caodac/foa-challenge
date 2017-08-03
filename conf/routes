@@ -1,8 +1,6 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-GET /c2handler controllers.ChallengeController.handleC2Request()
-
 ##
 ## for debugging purposes only!!
 ##
@@ -23,9 +21,10 @@ GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
 # should really figure out how to properly handle CSRF filter
 #
 + nocsrf
-POST	/:id/:stage	controllers.ChallengeController.submit(id: String, stage: Int)
+POST	/:id	controllers.ChallengeController.submit(id: String, stage: Int)
 
 POST /c3/handler controllers.ChallengeController.handleC3Request()
+POST /c2/handler controllers.ChallengeController.handleC2Request()
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)

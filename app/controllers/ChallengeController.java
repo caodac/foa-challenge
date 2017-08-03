@@ -93,6 +93,15 @@ public class ChallengeController extends Controller {
         }
     }
 
+    File download (int stage) {
+        if (stage == 5) {
+            String file = config.getConfig("challenge")
+                .getConfig("c5").getString("graph-file");
+            return env.getFile(file);
+        }
+        return null;
+    }
+
     public CompletionStage<Result> stage (final String id,
                                           final Integer stage) {
         try {
@@ -106,12 +115,10 @@ public class ChallengeController extends Controller {
                         String action = request().getQueryString("action");
                         if (action != null
                             && "download".equalsIgnoreCase(action)) {
-                            String file = config.getConfig("challenge")
-                                .getConfig("c5").getString("graph-file");
-                            File f = env.getFile(file);
-                            if (f != null) {
-                                Logger.debug(part.id+": download file "+f);
-                                return ok (f, false);
+                            File file = download (stage);
+                            if (file != null) {
+                                Logger.debug(part.id+": download file "+file);
+                                return ok (file, false);
                             }
                         }
                         
@@ -345,6 +352,23 @@ public class ChallengeController extends Controller {
         return true;
     }
 
+    boolean checkC2 (Participant part, Map<String, String[]> data) {
+        String[] apiurl = data.get("API-URI");
+        if (apiurl == null || apiurl.length == 0 || apiurl[0].equals("")) {
+            Logger.warn(part.id+": no API-URI parameter specified!");
+            return false;
+        }
+
+        String message = C2ApiTester.main(ws, apiurl[0]);
+        if (!message.endsWith("NOT TO PLAY.\n")) {
+            Logger.debug(part.id+": incorrect C2 attempt: "+message);
+            return false;
+        }
+
+        Logger.debug(part.id+": passes C2!");
+        return true;
+    }
+    
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
     public CompletionStage<Result> submit (final String id,
                                            final Integer stage) {
@@ -366,6 +390,11 @@ public class ChallengeController extends Controller {
                             break;
                             
                         case 2:
+                            if (checkC2 (part, data)) {
+                                repo.nextStage(part);
+                            }
+                            break;
+                            
                         case 3:
                         case 4:
                             if (checkC4 (part, data)) {
