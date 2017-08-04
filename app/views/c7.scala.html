@@ -17,28 +17,37 @@
                 </p>
                 <p>
                     By amassing a team of motivated grad students and a lot of coffee, a group has
-                    amassed a rich dataset of 1,000,000 gene-disease associations. The data is available
+	      amassed a rich dataset of 1,000,000 gene-disease associations, each one quantified by a
+	      <i>knowledge score</i>. These scores represent
+	      the knowlege available about the gene and disease - smaller values
+	      indicate that less is known about the gene and disease, and conversely, larger values indicate
+	      that the gene-disease association is well studied.
+
+	      The data is available
                     <a href="@routes.Assets.versioned("resources/gene-disease-assoc.csv.gz")">here</a> and
-                    lists the gene, disease it is associated with and the probability of the association.
+                    lists the gene, disease it is associated with and the knowledge score.
                 </p>
                 <p>
-                    Now the group is looking for funding to validate a subset of these associations. The group is
+	      Now the group is looking for funding to explore a subset of these associations. But they
+	      don't want to study what everybody else is studying, So the group is
                     interested in identifying the subset of associations such that
                 </p>
                 <ol>
                     <li>the selected associations include every gene and every disease from the
                         original dataset (there may be repetitions of a gene or disease), and</li>
-                    <li>the sum of the probabilities of the selected associations is maximized (
+                    <li>the sum of the knowledge scores of the selected associations is minimized (
                     correct to the second decimal place)</li>
                 </ol>
                 <p>
-                    Can you help them? Your answer should be a CSV file in the form
+		This means the subset so identified, will represent those associations which, in aggregate, 
+		have very little known about them. Can you help them? Your answer should be a CSV file
+		in the form
                 </p>
                 <pre>
-"Gene","Disease","Prob"
-"G1","D1",PROB</pre>
+"Gene","Disease","Score"
+"G1","D1",SCORE</pre>
                 <p>where the first line is the header, and then each row is an association between a gene
-                    and a disease and the given probability. Note that all text fields should be quoted
+                    and a disease and the given score. Note that all text fields should be quoted
                     using double quotes.
                 </p>
 

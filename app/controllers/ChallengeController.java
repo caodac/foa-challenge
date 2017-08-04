@@ -332,8 +332,8 @@ public class ChallengeController extends Controller {
                 if (diseaseSet.size() != 500)
                     return badRequest("Your calculation failed. Incorrect number of diseases.\n");
                 // check that we got the maximal probability
-                if (Precision.round(probSum,2) != 424.81)
-                    return badRequest("Your calculation failed. The sum of probabilities is not maximal.\n");
+                if (Precision.round(probSum,2) != 0.95)
+                    return badRequest("Your calculation failed. The sum of knowledge scores is not minimal.\n");
 
                 repo.nextStage(part);
                 return redirect(routes.ChallengeController.challenge(id));
@@ -347,7 +347,7 @@ public class ChallengeController extends Controller {
 
         }, httpExecutionContext.current()).exceptionally(t -> {
             Logger.error("Failed to fetch participant: " + id, t);
-            return badRequest("Error");
+            return badRequest("Something bad happened such as a malformed CSV.\n");
         });
 
 
