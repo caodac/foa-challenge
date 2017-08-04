@@ -27,15 +27,52 @@
         a clinical phenotype or endpoint which together reflect (6) a disease
         or condition. 
         
-        <br><br>For each of the drug-disease pairs listed below, construct a
+        <br><br>For the drug-disease pair listed below, construct a
         clinical outcome pathway that best explains how the drug effects its
-        action.  Please also provide a confidence for each clinical outcome
-        pathway assertion.  Please report “clinical outcome pathway is not
-        understood” in cases where the pathophysiology is not known in the
-        literature and also provide a confidence for this assertion.  For
-        each element of a clinical outcome pathway, resolve the relevant
-        entity to an existing dictionary ID/ontology term.
-     </div>
+        action.  Please enter the PMID of a paper which is tagged with the relevant
+        MeSH term for each of the categories below in order to construct the COP.
+          The same paper may be used for multiple categories.
+      </div>
+      <form id="c5-form" class="form-inline"
+      method="POST"
+      action="@controllers.routes.ChallengeController.submit(part.id.toString, 6)">
+        <div class="panel panel-@if(part.stage>6){success}else{primary}"
+        style="margin-top:20px">
+          <div class="panel-heading">
+            <h3 class="panel-title"><b>1.</b> Clinical Outcome Pathway</h3>
+          </div>
+          <div class="panel-body">
+            <div class="input-group">
+              <input type="text" class="form-control"
+              name="drug-name"
+              placeholder="Imatinib"
+              aria-describedby="drug-name" readonly required>
+              <input type="text" class="form-control"
+              name="target"
+              placeholder="Target"
+              aria-describedby="target" required>
+              <input type="text" class="form-control"
+              name="pathway"
+              placeholder="Pathway"
+              aria-describedby="pathway" required>
+              <input type="text" class="form-control"
+              name="symptom"
+              placeholder="Symptom"
+              aria-describedby="symptom" required>
+              <input type="text" class="form-control"
+              name="cell"
+              placeholder="Cell Line"
+              aria-describedby="cell" required>
+              <input type="text" class="form-control"
+              name="disease"
+              placeholder="Asthma"
+              aria-describedby="disease" required readonly>
+            </div>
+            <input class="btn btn-@if(part.stage>6){success}else{primary}"
+            type="submit" @if(part.stage>6){disabled}/>
+          </div>
+        </div>
+      </form>
     </div>
   </div>
 </div>
