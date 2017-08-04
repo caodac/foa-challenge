@@ -355,7 +355,7 @@ public class ChallengeController extends Controller {
                     return badRequest("Your calculation failed. Incorrect number of diseases.\n");
                 // check that we got the maximal probability
                 if (Precision.round(probSum,2) != 0.95)
-                    return badRequest("Your calculation failed. The sum of probabilities is not maximal.\n");
+                    return badRequest("Your calculation failed. The sum of knowledge scores is not minimal.\n");
 
                 repo.nextStage(part);
                 return redirect(routes.ChallengeController.challenge(id));
