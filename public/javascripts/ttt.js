@@ -137,21 +137,22 @@ function sleep(ms) {
 }
 
 async function runScript() {
-    //AT(moves: String)
-    //var moves = "ATmoves";"
-
     var moves = "----X-------OX-------OX--X--O-OX--X-XO-OX--X-XO-OX--XOXO-OXX-XOXO-OXXOXOXOXOXXOXO----O-------XO-----O-XO-----O-XO--X--O-XO-OX--OXXO-OX--OXXOOOX-XOXXOOOX-XOXXOOOXO----X-------OX-------OXX------OXX-O----OXXXO---OOXXXO--XOOXXXO-OXOOXXXO-OXOOXXXOX----O--------O--X-----OO-X----XOO-X----XOOOX---XXOOOX--OXXOOOX--OXXOOOXXOOXXOOOXX----X--------XO------XXO------XXO-O--X-XXO-O-OX-XXO-O-OX-XXO-OXOX-XXOOOXOXXXXOOOX----O-------XO-------XOO------XOO-X----XOOOX---XXOOOX--OXXOOOX--OXXOOOXXOOXXOOOXX----X--------XO-------XO-X--O--XO-X--OX-XO-X--OX-XOOX--OXXXOOX--OXXXOOXOXOXXXOOXO----O-------XO-------XO--O--X-XO--O-OX-XO--O-OX-XO--OXOX-XOO-OXOXXXOO-OXOXXXOOOOX----X--------X--O--X--X--O--X-OX--O--X-OX-XO--XOOX-XO--XOOXXXO--XOOXXXOOXXOOXXXOO----O--------O--X-----OO-X----XOO-X----XOOOX---XXOOOX--OXXOOOX-XOXXOOOX-XOXXOOOXO----X--------XO-------XO-X--O--XO-X--OX-XO-X--OX-XOOX--OXXXOOX--OXXXOOXOXOXXXOOXO----O-------XO-------XO--O--X-XO--O-OX-XO--O-OX-XO--OXOX-XOO-OXOXXXOO-OXOXXXOOOOX----X--------X--O----XX--O----XXO-O--X-XXO-O-OX-XXO-O-OXXXXO-O-OXXXXOOO-OXXXXOOOX----O-----X--O-----X-OO-----X-OOX----XOOOX----XOOOXX---XOOOXXO--XOOOXXOXOXOOOXXOX----X-----O--X-----O-XX-----O-XXO----OXXXO----OXXXOO---OXXXOOX--OXXXOOXOXOXXXOOXO----O-------XO-------XOO------XOO-X----XOOOX---XXOOOX--OXXOOOX-XOXXOOOX-XOXXOOOXO";
+    var val = $.trim($("textarea").val());
+    if (val != "") {
+        moves = val;
+    }
     var sleepCt = 1000;
     for (var i=0; i<moves.length; i=i+9) {
         move = moves.substring(i, i+9);
-        console.log(i+":"+move);
+        //console.log(i+":"+move);
         setMarks(move);
         await sleep(sleepCt);
-        sleepCt = sleepCt - 25;
-        if (sleepCt < 50) sleepCt = 50;
+        sleepCt = sleepCt - 35;
+        if (sleepCt < 35) sleepCt = 35;
     }
     var action = window.location.href+"233";
-    document.getElementById("ttt-board").innerHTML = "<div class=\"vt100\">A STRANGE GAME. <br>THE ONLY WINNING MOVE IS NOT TO PLAY.</div><div><form action=\""+action+"\"><input type=\"submit\" value=\"Continue in challenge\" /></form></div>";
+    document.getElementById("ttt-board").innerHTML = "<div class=\"vt100\">A STRANGE GAME. <br>THE ONLY WINNING MOVE IS NOT TO PLAY.</div><div class=\"vt100\"><br>How about a nice game of something else?</div><div><form action=\""+action+"\"><input type=\"submit\" value=\"Continue in challenge\" /></form></div>";
 }
 
 // Add event listeners once the DOM has fully loaded by listening for the

@@ -2,7 +2,6 @@ package controllers;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.JsonNode;
-import io.ebean.Transaction;
 import models.Participant;
 import org.apache.commons.math3.util.Precision;
 import play.Configuration;
@@ -17,8 +16,8 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import play.twirl.api.Html;
 import repository.C2ApiTester;
+import repository.ChallengeResponse;
 import repository.ParticipantRepository;
 
 import javax.inject.Inject;
@@ -154,7 +153,7 @@ public class ChallengeController extends Controller {
     }
 
     public Result ttt (String message) {
-        return ok (ttt.render());
+        return ok (ttt.render(message));
     }
 
     @BodyParser.Of(value = BodyParser.Json.class)
@@ -395,22 +394,14 @@ public class ChallengeController extends Controller {
         return true;
     }
 
-    String checkC2 (Participant part, Map<String, String[]> data) {
+    ChallengeResponse checkC2 (Participant part, Map<String, String[]> data) {
         String[] apiurl = data.get("API-URI");
         if (apiurl == null || apiurl.length == 0 || apiurl[0].equals("")) {
             Logger.warn(part.id+": no API-URI parameter specified!");
-            return null;
+            return new ChallengeResponse(0, "No API-URI parameter specified!");
         }
 
-        String message = C2ApiTester.main(ws, apiurl[0]);
-        if (!message.endsWith("NOT TO PLAY.\n")) {
-            Logger.debug(part.id+": incorrect C2 attempt: "+message);
-            return null;
-        }
-
-        Logger.debug(part.id+": passes C2!");
-        return message;
-        //return true;
+        return C2ApiTester.main(ws, apiurl[0]);
     }
 
     
@@ -435,13 +426,13 @@ public class ChallengeController extends Controller {
                             break;
                             
                         case 2:
-                            String message = checkC2 (part, data);
-                            if (message != null) {
-                                //repo.nextStage(part); // advance to next stage
-                                repo.incrementStage(part);
-                                return ttt(message);
+                            ChallengeResponse resp = checkC2 (part, data);
+                            Logger.debug(part.id+": "+resp.success+": "+resp.message);
+                            if (resp.success > 0) {
+                                repo.incrementStage(part); // advance to next stage
+                                return ttt(resp.message);
                             }
-                            break;
+                            return ok(resp.message);
                             
                         case 3:
                         case 4:
