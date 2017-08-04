@@ -2,6 +2,7 @@ package controllers;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.ebean.Transaction;
 import models.Participant;
 import org.apache.commons.math3.util.Precision;
 import play.Configuration;
@@ -19,6 +20,19 @@ import play.mvc.Result;
 import repository.C2ApiTester;
 import repository.ChallengeResponse;
 import repository.ParticipantRepository;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
+
 
 import javax.inject.Inject;
 import java.io.File;
@@ -393,7 +407,54 @@ public class ChallengeController extends Controller {
         Logger.debug(part.id+": passes C4!");
         return true;
     }
+    boolean checkC6 (Participant part, Map<String, String[]> data) {
+        String[] target = data.get("target");
+        String[] pathway = data.get("pathway");
+        String[] symptom = data.get("symptom");
+        String[] cell = data.get("cell");
+        Logger.info("Checking c6");
+        HashMap<Integer,List<String>> answerMap = createAnswerMap();
+        boolean bTarget = false;
+        boolean bPathway = false;
+        boolean bSymptom = false;
+        boolean bCell = false;
 
+        if(target != null) {
+            HashMap<String,String> mTarget = getTopics(target[0]);
+            bTarget=!Collections.disjoint(mTarget.keySet(),answerMap.get(2));
+
+        }
+        if(pathway != null){
+            HashMap<String,String> mPathway = getTopics(pathway[0]);
+            bPathway = (!Collections.disjoint(mPathway.keySet(),answerMap.get(3)));
+        }
+        if(symptom!=null) {
+            HashMap<String,String> mSymptom = getTopics(symptom[0]);
+            bSymptom=(!Collections.disjoint(mSymptom.keySet(),answerMap.get(4)));
+        }
+        if(cell != null){
+            HashMap<String,String> mCell = getTopics(cell[0]);
+            bCell = (!Collections.disjoint(mCell.keySet(),answerMap.get(5)));
+        }
+//        if(bTarget)
+//        {
+//            Logger.info("target");
+//        }
+//        if(bPathway)
+//        {
+//            Logger.info("path");
+//
+//        }
+//        if(bSymptom)
+//        {
+//            Logger.info("symptom");
+//        }
+//        if(bCell)
+//        {
+//            Logger.info("cell");
+//        }
+        return bTarget && bPathway && bSymptom && bCell;
+    }
     ChallengeResponse checkC2 (Participant part, Map<String, String[]> data) {
         String[] apiurl = data.get("API-URI");
         if (apiurl == null || apiurl.length == 0 || apiurl[0].equals("")) {
@@ -403,8 +464,67 @@ public class ChallengeController extends Controller {
 
         return C2ApiTester.main(ws, apiurl[0]);
     }
+    HashMap<Integer,List<String>> createAnswerMap() {
+        HashMap<Integer, List<String>> answerMap = new HashMap();
+        answerMap.put(1, Arrays.asList("D000068877"));
+        answerMap.put(2,Arrays.asList("D019009"));
+        answerMap.put(3,Arrays.asList("D015398","D020935"));
+        answerMap.put(4,Arrays.asList("D000402","D012130","D004418","D016535"));
+        answerMap.put(5,Arrays.asList("D008407"));
+        answerMap.put(6,Arrays.asList("D001249"));
 
-    
+        return answerMap;
+    }
+    HashMap<String,String> getTopics(String pmid){
+        HashMap<String,String> topics = new HashMap<String,String>();
+        try{
+            URL url = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id="
+                    +pmid+
+                    "&retmode=xml");
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setInstanceFollowRedirects(false);
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("charset", "utf-8");
+            DataOutputStream wr = new DataOutputStream (
+                    connection.getOutputStream());
+            wr.close();
+
+            BufferedReader br = new BufferedReader((new InputStreamReader(connection.getInputStream(),"UTF-8")));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while((line = br.readLine())!=null)
+            {
+                response.append(line);
+            }
+            DocumentBuilder db = DocumentBuilderFactory
+                    .newInstance().newDocumentBuilder();
+            Document doc = db.parse
+                    (new InputSource(new StringReader(response.toString())));
+            NodeList nodes = doc.getElementsByTagName("MeshHeading");
+
+            for(int i=0;i<nodes.getLength();i++)
+            {
+
+                Element elem = (Element) nodes.item(i);
+                NodeList headings = elem.getElementsByTagName("DescriptorName");
+                for(int j = 0; j<headings.getLength(); j++) {
+                    Element heading = (Element) headings.item(j);
+                    String topic = heading.getTextContent();
+                    String meshId = heading.getAttribute("UI");
+                    topics.put(meshId,topic);
+                }
+            }
+            connection.disconnect();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return topics;
+    }
+
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
     public CompletionStage<Result> submit (final String id,
                                            final Integer stage) {
@@ -448,6 +568,9 @@ public class ChallengeController extends Controller {
                             break;
                             
                         case 6:
+                            if (checkC6 (part, data)){
+                                repo.nextStage(part);
+                            }
                         case 7:
                             break;
                         }
