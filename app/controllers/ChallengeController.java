@@ -284,28 +284,6 @@ public class ChallengeController extends Controller {
                 });
     }
 
-    public CompletionStage<Result> handleC2Request() {
-        DynamicForm dynamicForm = formFactory.form().bindFromRequest();
-        String id = dynamicForm.get("uuid");
-        String apiurl = dynamicForm.get("API-URI");
-
-        UUID uuid = UUID.fromString(id);
-        return repo.fetch(uuid).thenApplyAsync(part -> {
-            if (part != null) {
-                String message = C2ApiTester.main(ws, apiurl);
-                if (message.endsWith("NOT TO PLAY.\n")) {
-                    repo.nextStage(part);
-                    return ok(message + "Challenge 2 has been solved.\n");
-                }
-                else return badRequest(message);
-            }
-            return ok (welcome.render());
-        }, httpExecutionContext.current()).exceptionally(t -> {
-            Logger.error("Failed to fetch participant: "+id, t);
-            return badRequest("This id, "+id+", doesn't correspond to a valid participant.\n");
-        });
-    }
-
     public CompletionStage<Result> handleC3Request() {
         DynamicForm dynamicForm = formFactory.form().bindFromRequest();
         String email = dynamicForm.get("email");
