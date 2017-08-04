@@ -1,7 +1,9 @@
 package controllers;
 
+import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.Participant;
+import org.apache.commons.math3.util.Precision;
 import play.Configuration;
 import play.Environment;
 import play.Logger;
@@ -12,13 +14,24 @@ import play.libs.concurrent.HttpExecutionContext;
 import play.libs.ws.WSClient;
 import play.mvc.BodyParser;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import repository.C2ApiTester;
 import repository.ParticipantRepository;
 
 import javax.inject.Inject;
-import java.util.*;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -310,6 +323,58 @@ public class ChallengeController extends Controller {
         });
     }
 
+    @BodyParser.Of(value = BodyParser.MultipartFormData.class)
+    public CompletionStage<Result> handleC7Request(String id) {
+        UUID uuid = UUID.fromString(id);
+        return repo.fetch(uuid).thenApplyAsync(part -> {
+            Http.MultipartFormData<File> body = request().body().asMultipartFormData();
+            Http.MultipartFormData.FilePart<File> filePart = body.getFile("c7assoc");
+            if (filePart == null) return badRequest("No association file was provided");
+            File csvFile = filePart.getFile();
+            try {
+                List<String> genes = new ArrayList<String>();
+                List<String> diseases = new ArrayList<String>();
+                double probSum = 0.0;
+
+                CSVReader csvReader = new CSVReader(new FileReader(csvFile), ',', '"', 1); // skip header line
+                String[] toks;
+                while ((toks = csvReader.readNext()) != null) {
+                    if (toks.length != 3) return badRequest("CSV file was not formatted properly.\n");
+                    genes.add(toks[0]);
+                    diseases.add(toks[1]);
+                    probSum += Double.parseDouble(toks[2]);
+                }
+
+                // check genes and diseases are unique and equal the proper number
+                Set<String> geneSet = new HashSet<String>(genes);
+                Set<String> diseaseSet = new HashSet<String>(diseases);
+
+                if (geneSet.size() != 2000)
+                    return badRequest("Your calculation failed. Incorrect number of genes.\n");
+                if (diseaseSet.size() != 500)
+                    return badRequest("Your calculation failed. Incorrect number of diseases.\n");
+                // check that we got the maximal probability
+                if (Precision.round(probSum,2) != 424.81)
+                    return badRequest("Your calculation failed. The sum of probabilities is not maximal.\n");
+
+                repo.nextStage(part);
+                return redirect(routes.ChallengeController.challenge(id));
+
+            } catch (FileNotFoundException e) {
+                return internalServerError("Error opening CSV file.\n" + e.getMessage() + "\n");
+            } catch (IOException e) {
+                return internalServerError("Error opening CSV file.\n" + e.getMessage() + "\n");
+            }
+
+
+        }, httpExecutionContext.current()).exceptionally(t -> {
+            Logger.error("Failed to fetch participant: " + id, t);
+            return badRequest("Error");
+        });
+
+
+    }
+
     boolean checkC5 (Participant part, Map<String, String[]> data) {
         Configuration conf = config.getConfig("challenge").getConfig("c5");
         Configuration optional = conf.getConfig("optional");
@@ -368,6 +433,8 @@ public class ChallengeController extends Controller {
         Logger.debug(part.id+": passes C2!");
         return true;
     }
+
+
     
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
     public CompletionStage<Result> submit (final String id,
@@ -380,8 +447,8 @@ public class ChallengeController extends Controller {
                             return redirect(routes.ChallengeController
                                             .challenge(id));
                         
-                        Map<String, String[]> data =
-                            request().body().asFormUrlEncoded();
+                        Map<String, String[]> data = request().body().asFormUrlEncoded();
+
                         // check the answer
                         switch (stage) {
                         case 1:

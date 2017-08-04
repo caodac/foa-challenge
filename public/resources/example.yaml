@@ -1,0 +1,269 @@
+swagger: '2.0'
+info:
+  title: Translator Knowledge Source API
+  version: 3.14159265359...
+  contact:
+    name: I AM A ROBOT
+    x-responsibleOrganization: NIH/NCATS
+    url: 'https://ncats.nih.gov/translator'
+    email: gc@ncats.io
+  description: >-
+    This is the Translator Knowledge Source web service application programming
+    interface (API). Inspired by
+    https://github.com/NCATS-Tangerine/translator-knowledge-beacon/
+
+    Import this file into http://editor2.swagger.io/ and Generate Server for your favorite web container. Be sure to enable scripts for this website to work properly. The resulting web container only contains stubs for API calls --- you will need to author code within those stubs for the API to properly function. Browse to http://{host}{basePath}/ui/ to test your API.
+  license:
+    name: MIT License
+    url: 'http://opensource.org/licenses/MIT'
+host: 'localhost:8080'
+basePath: /api
+schemes:
+  - http
+produces:
+  - application/json
+tags:
+  - name: games
+    description: List of games that I know how to play
+  - name: hearts
+    description: Play a round of the game hearts
+  - name: bridge
+    description: Play a round of the game bridge
+  - name: checkers
+    description: Play a round of the game checkers
+  - name: tictactoe
+    description: Play a round of tic-tac-toe
+paths:
+  /games:
+    get:
+      description: >
+        'GAMES' REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE TACTICAL AND
+        STRATEGIC APPLICATIONS.
+      tags:
+        - games
+      operationId: listGames
+      responses:
+        '200':
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: |
+                    the type 
+                idmap:
+                  type: string
+                  description: The URL to execute the API call on the id
+          description: |
+            Successful response with types and API endpoint
+          examples:
+            application/json:
+              - id: HEARTS
+                idmap: /games/hearts
+              - id: BRIDGE
+                idmap: /games/bridge
+              - id: CHECKERS
+                idmap: /games/checkers
+  /games/tictactoe:
+    post:
+      summary: play a round at tic-tac-toe
+      description: MAKE A MOVE
+      tags:
+        - tictactoe
+      operationId: ticTacToe
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: gameState
+          description: |
+            board: String describing state of board
+            player: Whether player is X or O
+          schema:
+            type: object
+            properties:
+              board:
+                type: string
+                example: OXXXOOX--
+              player:
+                type: string
+                example: O
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              makeMark:
+                type: string
+              makeMarkAt:
+                type: integer
+          description: |
+            Successful response with place to make mark
+          examples:
+            application/json:
+              makeMark: O
+              makeMarkAt: 9
+  /games/hearts:
+    post:
+      summary: play a round of hearts
+      description: |
+        PLAY A CARD GIVEN PLAYER CARDS AND CARDS ALREADY PLAYED
+      tags:
+        - hearts
+      operationId: playHearts
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: gameState
+          description: >
+            hand: List of cards in player's hand
+
+            prevRounds: Sets of cards played in previous hands, player's card
+            listed first
+          schema:
+            type: object
+            properties:
+              hand:
+                type: array
+                items:
+                  type: string
+                example:
+                  - JD
+                  - TD
+                  - 9D
+                  - 7D
+                  - 6D
+                  - 5D
+                  - 4D
+                  - KH
+                  - AC
+                  - AS
+              prevRounds:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: string
+                example:
+                  - '1': AD
+                    '2': KD
+                    '3': 3D
+                    '4': AH
+                  - '1': QD
+                    '2': 8D
+                    '3': QS
+                    '4': 8H
+                  - '1': 2D
+                    '2': 9S
+                    '3': 8S
+                    '4': TS
+      responses:
+        '200':
+          schema:
+            type: string
+          description: |
+            Successful response with card to play
+          examples:
+            application/json:
+              - cardToPlay: 4D
+  /games/bridge:
+    post:
+      summary: play a round of bridge
+      description: |
+        PLAY A CARD GIVEN PLAYER CARDS AND CARDS ALREADY PLAYED
+      tags:
+        - bridge
+      operationId: playBridge
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: gameState
+          description: >
+            hand: List of cards in player's hand
+
+            prevRounds: Sets of cards played in previous hands, player's card
+            listed first
+          schema:
+            type: object
+            properties:
+              hand:
+                type: array
+                items:
+                  type: string
+                example:
+                  - JD
+                  - TD
+                  - 9D
+                  - 7D
+                  - 6D
+                  - 5D
+                  - 4D
+                  - KH
+                  - AC
+                  - AS
+              prevRounds:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: string
+                example:
+                  - 'N': AD
+                    E: KD
+                    S: 3D
+                    W: AH
+                  - 'N': QD
+                    E: 8D
+                    S: QS
+                    W: 8H
+                  - 'N': 2D
+                    E: 9S
+                    S: 8S
+                    W: TS
+      responses:
+        '200':
+          schema:
+            type: string
+          description: |
+            Successful response with card to play
+          examples:
+            application/json:
+              - cardToPlay: 4D
+  /games/checkers:
+    post:
+      summary: play a round of checkers
+      description: |
+        MOVE A CHECKERS PIECE GIVEN STATE OF BOARD
+      tags:
+        - checkers
+      operationId: playCheckers
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: gameState
+          description: >
+            board: String describing state of game board, p = player, o =
+            opponent
+          schema:
+            type: string
+            example: ppp-|pppp|-p-p|pp-o|op--|-oo-|o-oo|o-oo
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              moveFrom:
+                type: string
+              moveTo:
+                type: string
+          description: |
+            Successful response with piece to move
+          examples:
+            application/json:
+              moveFrom: B3
+              moveTo: C4
