@@ -30,17 +30,9 @@ public class C2ApiTester {
         return req.post(json).toCompletableFuture().get();
     }
 
-    static JsonNode requestJson(WSClient ws, String uri, JsonNode json) {
+    static JsonNode requestJson(WSClient ws, String uri, JsonNode json) throws Exception {
         WSResponse resp = null;
-        try {
-            resp = request(ws, uri, json);
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-            return null;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            return null;
-        }
+        resp = request(ws, uri, json);
         return resp.asJson();
     }
 
@@ -136,15 +128,17 @@ public class C2ApiTester {
         return 0;
     }
 
-    static public String main(WSClient ws, String API) {
+    static public ChallengeResponse main(WSClient ws, String API) {
         if (!API.startsWith("http"))
-            return ("You can not be serious! Hypertext Transfer Protocol was not on the line! "+API+"\n");
+            return new ChallengeResponse(0,
+                    "You can not be serious! Hypertext Transfer Protocol was not on the line! "+API+"\n");
 
         // Test whether GET works on API
         String tttpath = "";
         try {
             JsonNode node = requestJson(ws, API + "/games", null);
-            if (!node.isArray()) return "API response did not contain an ARRAY of games to play.";
+            if (!node.isArray()) return new ChallengeResponse(0,
+                    "API response did not contain an ARRAY of games to play.\n"+node.toString());
             for (final JsonNode entry : node) {
                 if (entry.has("id") && entry.has("idmap")) {
                     String game = entry.get("id").textValue().toUpperCase();
@@ -156,13 +150,15 @@ public class C2ApiTester {
                 }
             }
             if (tttpath.length() == 0)
-                return "Failed to find my game in API response.\n"+
+                return new ChallengeResponse(0,
+                        "Failed to find my game in API response.\n"+
                         "Different games should be named under an 'id' tag, as in the example yaml file.\n\n\n\n"+
                         "It's not on the list! It's got to be somewhere.\n\n"+API+"/games\n\n"+
-                        node.toString();
+                        node.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            return "Failed to successfully query "+API+"/games for a list of games to play. *sigh*";
+            return new ChallengeResponse(0,
+                    "Failed to successfully query " + API + "/games for a list of games to play. *sigh*\n" + e.getCause().toString());
         }
 
         // Test whether PUT works on API
@@ -171,13 +167,15 @@ public class C2ApiTester {
                     .put("board", "OXXXOOX--")
                     .put("player", "O");
             JsonNode node = requestJson(ws, API + tttpath, json);
-            if (!node.has("makeMarkAt")) return "Something is amiss here ... Please specify where to move next with the tag 'makeMarkAt'\n\n"+node.toString();
+            if (!node.has("makeMarkAt")) return new ChallengeResponse(0,
+                    "Something is amiss here ... Please specify where to move next with the tag 'makeMarkAt'\n\n"+node.toString());
         } catch (Exception e) {
             e.printStackTrace();
-            return "Failed to successfully retrieve next move in TIC-TAC-TOE. *sigh*";
+            return new ChallengeResponse(0,
+                    "Failed to successfully retrieve next move in TIC-TAC-TOE. *sigh*\n" + e.getCause().toString());
         }
 
-        // Fake functioning tictactoe gameplay
+        // test for functioning tictactoe gameplay
         int i = 0;
         StringBuffer sb = new StringBuffer();
         char player = 'X';
@@ -188,26 +186,58 @@ public class C2ApiTester {
             JsonNode gamePlay = Json.newObject()
                     .put("board", board)
                     .put("player", Character.toString(player));
-            int mark = makeMark(board, player)+1;
-            //It would be great! to be able to do this!
-            //JsonNode node = requestJson(ws, API + tttpath, gamePlay);
-            //if (node.has("makeMarkAt")) mark = node.get("makeMarkAt").intValue();
-            board = board.substring(0, mark-1) + player + board.substring(mark);
+            int mark = makeMark(board, player) + 1;
+            try {
+                //It would be great if they were be able to do this!
+                JsonNode node = requestJson(ws, API + tttpath, gamePlay);
+                if (node.has("makeMarkAt")) {
+                    int testmark = node.get("makeMarkAt").intValue();
+                    if (testmark > 0 && testmark < 10 && board.charAt(testmark - 1) == '-') {
+                        mark = testmark;
+                    } else { // Their service stinks
+                        break;
+                    }
+                }
+            } catch (Exception e) {
+                // client API failed to mark board
+            }
+            board = board.substring(0, mark - 1) + player + board.substring(mark);
             i = i + 1;
-            sb.append(board); sb.append('\n');
+            sb.append(board);
             if (player == 'X')
                 player = 'O';
             else
                 player = 'X';
-
-            if (isWinner(board, 'X'))
-                return (sb.toString()+"\nX wins!!!");
-            else if (isWinner(board, 'O'))
-                return (sb.toString()+"\nO is the Winner!");
         }
-        if (!isBoardFull(board))
-            return (sb.toString()+"\nLet's try again.");
 
-        return sb.toString()+"\nA STRANGE GAME. THE ONLY WINNING MOVE IS NOT TO PLAY.\n";
+//        if (isWinner(board, 'X'))
+//            return new ChallengeResponse(1,
+//                    sb.toString()+"\nX wins!!!!");
+//        else if (isWinner(board, 'O'))
+//            return new ChallengeResponse(1,
+//                    sb.toString()+"\nO is the Winner!");
+//        else if (!isBoardFull(board))
+//            return new ChallengeResponse(1,
+//                    sb.toString()+"\nLet's try again.");
+
+        // Fake functioning tictactoe gameplay
+        if (isWinner(board, 'X') || isWinner(board, 'O') || !isBoardFull(board)) {
+            i = 0;
+            while (i < 144) {
+                if (isWinner(board, 'X') || isWinner(board, 'O') || isBoardFull(board))
+                    board = "---------";
+                int mark = makeMark(board, player) + 1;
+                board = board.substring(0, mark - 1) + player + board.substring(mark);
+                i = i + 1;
+                sb.append(board);
+                if (player == 'X')
+                    player = 'O';
+                else
+                    player = 'X';
+            }
+            return new ChallengeResponse(1, sb.toString());
+        }
+
+        return new ChallengeResponse(2, sb.toString());
     }
 }

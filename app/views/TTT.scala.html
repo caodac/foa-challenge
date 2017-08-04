@@ -2,6 +2,8 @@
 
 @this(webjars: org.webjars.play.WebJarsUtil)
 
+@(msg: String)
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -27,7 +29,7 @@
             <div class="col-md-8 col-md-offset-2">
               <div class="brand"
               style="text-align:left; font-style:italic; margin-top:10vh;">
-            Noel says hi
+            Let's use your API to play both sides of the game ...
               </div>
             </div>
           </div>
@@ -48,6 +50,9 @@
           </div>
         </div>
       </div>
+      <textarea id="moveset" style="display:none;">
+      @msg
+      </textarea>
   </div>
   </body>
   <head>
