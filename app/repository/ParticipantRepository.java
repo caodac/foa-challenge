@@ -1,17 +1,15 @@
 package repository;
-import models.Participant;
-
 import io.ebean.Ebean;
 import io.ebean.EbeanServer;
-import io.ebean.PagedList;
 import io.ebean.Transaction;
+import models.Participant;
 import play.db.ebean.EbeanConfig;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.UUID;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -54,21 +52,25 @@ public class ParticipantRepository {
             }, executionContext);
     }
 
+    public Optional<Participant> incrementStage(Participant part) {
+        Optional<Participant> ret = Optional.empty();
+        Transaction tx = ebeanServer.beginTransaction();
+        try {
+            part.stage = part.stage+1;
+            part.updated = System.currentTimeMillis();
+            part.update();
+            tx.commit();
+            ret = Optional.of(part);
+        }
+        finally {
+            tx.end();
+        }
+        return ret;
+    }
+
     public CompletionStage<Optional<Participant>> nextStage (Participant part) {
         return supplyAsync (() -> {
-                Optional<Participant> ret = Optional.empty();
-                Transaction tx = ebeanServer.beginTransaction();
-                try {
-                    part.stage = part.stage+1;
-                    part.updated = System.currentTimeMillis();
-                    part.update();
-                    tx.commit();
-                    ret = Optional.of(part);
-                }
-                finally {
-                    tx.end();
-                }
-                return ret;
+                return incrementStage(part);
             }, executionContext);
     }
 

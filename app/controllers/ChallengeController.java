@@ -2,6 +2,7 @@ package controllers;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.ebean.Transaction;
 import models.Participant;
 import org.apache.commons.math3.util.Precision;
 import play.Configuration;
@@ -16,6 +17,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.twirl.api.Html;
 import repository.C2ApiTester;
 import repository.ParticipantRepository;
 
@@ -24,14 +26,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletionStage;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -50,6 +45,7 @@ public class ChallengeController extends Controller {
     @Inject views.html.Challenge challenge;
     @Inject views.html.Welcome welcome;
     @Inject views.html.Puzzle puzzle;
+    @Inject views.html.TTT ttt;
     
     @Inject ParticipantRepository repo;
     @Inject HttpExecutionContext httpExecutionContext;
@@ -155,6 +151,10 @@ public class ChallengeController extends Controller {
 
     public Result puzzle () {
         return ok (puzzle.render());
+    }
+
+    public Result ttt (String message) {
+        return ok (ttt.render());
     }
 
     @BodyParser.Of(value = BodyParser.Json.class)
@@ -269,28 +269,6 @@ public class ChallengeController extends Controller {
                     Logger.error("Failed to fetch participant list!", t);
                     return internalServerError (t.getMessage());
                 });
-    }
-
-    public CompletionStage<Result> handleC2Request() {
-        DynamicForm dynamicForm = formFactory.form().bindFromRequest();
-        String id = dynamicForm.get("uuid");
-        String apiurl = dynamicForm.get("API-URI");
-
-        UUID uuid = UUID.fromString(id);
-        return repo.fetch(uuid).thenApplyAsync(part -> {
-            if (part != null) {
-                String message = C2ApiTester.main(ws, apiurl);
-                if (message.endsWith("NOT TO PLAY.\n")) {
-                    repo.nextStage(part);
-                    return ok(message + "Challenge 2 has been solved.\n");
-                }
-                else return badRequest(message);
-            }
-            return ok (welcome.render());
-        }, httpExecutionContext.current()).exceptionally(t -> {
-            Logger.error("Failed to fetch participant: "+id, t);
-            return badRequest("This id, "+id+", doesn't correspond to a valid participant.\n");
-        });
     }
 
     public CompletionStage<Result> handleC3Request() {
@@ -417,23 +395,23 @@ public class ChallengeController extends Controller {
         return true;
     }
 
-    boolean checkC2 (Participant part, Map<String, String[]> data) {
+    String checkC2 (Participant part, Map<String, String[]> data) {
         String[] apiurl = data.get("API-URI");
         if (apiurl == null || apiurl.length == 0 || apiurl[0].equals("")) {
             Logger.warn(part.id+": no API-URI parameter specified!");
-            return false;
+            return null;
         }
 
         String message = C2ApiTester.main(ws, apiurl[0]);
         if (!message.endsWith("NOT TO PLAY.\n")) {
             Logger.debug(part.id+": incorrect C2 attempt: "+message);
-            return false;
+            return null;
         }
 
         Logger.debug(part.id+": passes C2!");
-        return true;
+        return message;
+        //return true;
     }
-
 
     
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
@@ -457,8 +435,11 @@ public class ChallengeController extends Controller {
                             break;
                             
                         case 2:
-                            if (checkC2 (part, data)) {
-                                repo.nextStage(part);
+                            String message = checkC2 (part, data);
+                            if (message != null) {
+                                //repo.nextStage(part); // advance to next stage
+                                repo.incrementStage(part);
+                                return ttt(message);
                             }
                             break;
                             

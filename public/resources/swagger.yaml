@@ -1,0 +1,101 @@
+swagger: '2.0'
+info:
+  title: Translator Knowledge Source API
+  version: 3.14159265359...
+  contact:
+    name: I AM A ROBOT
+    x-responsibleOrganization: NIH/NCATS
+    url: 'https://ncats.nih.gov/translator'
+    email: gc@ncats.io
+  description: >
+    This is the Biomedical Data Translator **Knowledge Source** web service
+    application programming interface (API). Inspired by
+    https://github.com/NCATS-Tangerine/translator-knowledge-beacon/
+
+    Import this file into http://editor.swagger.io/ and 'Generate Server' for
+    your favorite web container. Be sure to enable scripts for this website to
+    work properly. The resulting web container only contains stubs for API calls
+    --- you will need to author code within those stubs for the API to properly
+    function. Browse to http://{host}{basePath}/ui/ to test your API yourself.
+  license:
+    name: MIT License
+    url: 'http://opensource.org/licenses/MIT'
+host: 'localhost:8080'
+basePath: /api
+schemes:
+  - http
+produces:
+  - application/json
+tags:
+  - name: games
+    description: List of games that I know how to play
+  - name: tictactoe
+    description: Play a round of tic-tac-toe
+paths:
+  /games:
+    get:
+      description: >
+        'GAMES' REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE TACTICAL AND
+        STRATEGIC APPLICATIONS.
+      tags:
+        - games
+      operationId: listGames
+      responses:
+        '200':
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: string
+                  description: |
+                    the type 
+                idmap:
+                  type: string
+                  description: The URL to execute the API call on the id
+          description: |
+            Successful response with types and API endpoint
+          examples:
+            application/json:
+              - id: TIC-TAC-TOE
+                idmap: /games/tictactoe
+  /games/tictactoe:
+    post:
+      summary: play a round at tic-tac-toe
+      description: MAKE A MOVE
+      tags:
+        - tictactoe
+      operationId: ticTacToe
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: gameState
+          description: |
+            board: String describing state of board
+            player: Whether player is X or O
+          schema:
+            type: object
+            properties:
+              board:
+                type: string
+                example: OXXXOOX--
+              player:
+                type: string
+                example: O
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              makeMark:
+                type: string
+              makeMarkAt:
+                type: integer
+          description: |
+            Successful response with place to make mark
+          examples:
+            application/json:
+              makeMark: O
+              makeMarkAt: 9
