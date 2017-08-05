@@ -13,6 +13,7 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
+        <p>The Biomedical Data Translator consumes a wide variety of data from many sources. The goal of this challenge is to give the participant familiarity with bringing new resource APIs online.</p>
       <p>
         SHALL WE PLAY A GAME?
       </p>
@@ -27,10 +28,10 @@
                  aria-describedby="API-URI">
         </div>
         <br>For an example Swagger API definition file for a game agent,
-        please see this <a href='@routes.Assets.versioned("resources/example.yaml")'>example</a>.
+        please see this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>example</a>.
         
         <br><input class="btn btn-@if(part.stage>2){success}else{primary}"
-               type="submit" @if(part.stage>2){disabled}/>
+               type="submit" @if(part.stage==3){disabled}/>
       </form>
     </div>
   </div>
