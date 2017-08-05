@@ -29,10 +29,71 @@
         <li>Let's proceed to construct a knowledge graph with the
           query term <code>mast cell</code> as the seed. While there are
           multiple knowledge sources available, for the purpose of this
-          exercise we're restricting the knowledge graph to be built with
-          only the <a href="https://pharos.nih.gov">Pharos</a> knowledge
-          source.
+          exercise we're constructing the knowledge graph using 
+          the <a href="https://pharos.nih.gov">Pharos</a> knowledge
+          source exclusively.</li>
       </ol>
+
+      <form id="c5-form" class="form-inline" 
+            method="POST"
+            action="@controllers.routes.ChallengeController.submit(part.id.toString, 4)">
+      
+        <div class="panel panel-@if(part.stage>5){success}else{primary}"
+             style="margin-top:20px">
+          <div class="panel-body">
+            After the initial query expansion using the Pharos knowledge
+            source, what are the number of drugs, targets, and diseases,
+            respectively, in the knowledge graph?
+
+            <br>
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="drug-count"
+                     placeholder="Number of drugs"
+                     aria-describedby="drug-count" required>
+              <input type="text" class="form-control"
+                     name="target-count"
+                     placeholder="Number of targets"
+                     aria-describedby="target-count" required>
+              <input type="text" class="form-control"
+                     name="disease-count"
+                     placeholder="Number of diseases"
+                     aria-describedby="disease-count" required> 
+            </div>
+
+            <br><br>How many of the targets belong to the following
+            respective family?
+            
+            <br>
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="kinase-count"
+                     placeholder="Number of kinase targets"
+                     aria-describedby="kinase-count" required>
+              <input type="text" class="form-control"
+                     name="gpcr-count"
+                     placeholder="Number of GPCR targets"
+                     aria-describedby="gpcr-count" required>
+            </div>
+
+            <br><br>Next, select the target <b>Mast/stem cell growth factor
+              receptor kit</b> and perform the Pharos knowledge source
+            expansion around this node. How many inhibitors are available
+            for this target? 
+
+            <br>
+            <div class="input-group">
+              <input type="text" class="form-control"
+                     name="inhibitor-count"
+                     placeholder="Number of inhibitors"
+                     aria-describedby="inhibitor-count" required>
+            </div>
+          </div>
+        </div>
+        
+        <input class="btn btn-@if(part.stage>4){success}else{primary}"
+               type="submit" @if(part.stage>4){disabled}/>      
+      </form>
     </div>
   </div>
 </div>

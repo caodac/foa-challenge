@@ -536,7 +536,8 @@ public class ChallengeController extends Controller {
                             return redirect(routes.ChallengeController
                                             .challenge(id));
                         
-                        Map<String, String[]> data = request().body().asFormUrlEncoded();
+                        Map<String, String[]> data =
+                            request().body().asFormUrlEncoded();
 
                         // check the answer
                         switch (stage) {
@@ -554,7 +555,6 @@ public class ChallengeController extends Controller {
                             }
                             return ok(resp.message);
                             
-                        case 3:
                         case 4:
                             if (checkC4 (part, data)) {
                                 repo.nextStage(part); // advance to next stage

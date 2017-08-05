@@ -13,65 +13,66 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      <div class="well well-lg">
-        We do not understand how all approved drugs
-        work, but for a majority of them we can construct a clinical outcome
-        pathway that explains the molecular pathophysiology of their action.
-        A clinical outcome pathway can be thought of as the efficacy
-        equivalent of an adverse outcome pathway; it explains how a
-        molecular initiating event precipitates a series of key events which
-        manifest as a clinical outcome, beginning with (1) a molecular
-        initiating event physically interacting with (2) a biological target,
-        which affects (3) a biological pathway or series of pathways that are
-        relevant to (4) a particular cell type or tissue that manifest as (5)
-        a clinical phenotype or endpoint which together reflect (6) a disease
-        or condition. 
-        
-        <br><br>For the drug-disease pair listed below, construct a
-        clinical outcome pathway that best explains how the drug effects its
-        action.  Please enter the PMID of a paper which is tagged with the relevant
-        MeSH term for each of the categories below in order to construct the COP.
-          The same paper may be used for multiple categories.
-      </div>
+      We do not understand how all approved drugs
+      work, but for a majority of them we can construct a clinical outcome
+      pathway that explains the molecular pathophysiology of their action.
+      A clinical outcome pathway can be thought of as the efficacy
+      equivalent of an adverse outcome pathway; it explains how a
+      molecular initiating event precipitates a series of key events which
+      manifest as a clinical outcome, beginning with (1) a molecular
+      initiating event physically interacting with (2) a biological target,
+      which affects (3) a biological pathway or series of pathways that are
+      relevant to (4) a particular cell type or tissue that manifest as (5)
+      a clinical phenotype or endpoint which together reflect (6) a disease
+      or condition. 
+      
+      <br><br>For the drug-disease pair listed below, construct a
+      clinical outcome pathway that best explains how the drug effects its
+      action.  Please enter the PMID of a paper which is tagged with the relevant
+      MeSH term for each of the categories below in order to construct the COP.
+      The same paper may be used for multiple categories.
+
       <form id="c5-form" class="form-inline"
       method="POST"
       action="@controllers.routes.ChallengeController.submit(part.id.toString, 6)">
-        <div class="panel panel-@if(part.stage>6){success}else{primary}"
-        style="margin-top:20px">
-          <div class="panel-heading">
-            <h3 class="panel-title"><b>1.</b> Clinical Outcome Pathway</h3>
-          </div>
-          <div class="panel-body">
-            <div class="input-group">
-              <input type="text" class="form-control"
-              name="drug-name"
-              placeholder="Imatinib"
-              aria-describedby="drug-name" readonly required>
-              <input type="text" class="form-control"
-              name="target"
-              placeholder="Target"
-              aria-describedby="target" required>
-              <input type="text" class="form-control"
-              name="pathway"
-              placeholder="Pathway"
-              aria-describedby="pathway" required>
-              <input type="text" class="form-control"
-              name="symptom"
-              placeholder="Symptom"
-              aria-describedby="symptom" required>
-              <input type="text" class="form-control"
-              name="cell"
-              placeholder="Cell Line"
-              aria-describedby="cell" required>
-              <input type="text" class="form-control"
-              name="disease"
-              placeholder="Asthma"
-              aria-describedby="disease" required readonly>
-            </div>
-            <input class="btn btn-@if(part.stage>6){success}else{primary}"
-            type="submit" @if(part.stage>6){disabled}/>
-          </div>
+        <div class="input-group">
+          <br>
+          <span class="label label-@if(part.stage>6){success}else{primary}">Imatinib</span>
+          
+          <br>
+          <input type="text" class="form-control"
+                 name="target"
+                 placeholder="Target PMID"
+                 aria-describedby="target"
+                 style="width:100px;margin-left:20px;" required>
+          <br>
+          <input type="text" class="form-control"
+                 name="pathway"
+                 placeholder="Pathway PMID"
+                 aria-describedby="pathway"
+                 style="width:100px;margin-left:40px;" required>
+          <br>
+          <input type="text" class="form-control"
+                 name="symptom"
+                 placeholder="Symptom PMID"
+                 aria-describedby="symptom"
+                 style="width:100px;margin-left:60px;" required>
+          <br>
+          <input type="text" class="form-control"
+                 name="cell"
+                 placeholder="Cell Line PMID"
+                 aria-describedby="cell"
+                 style="width:100px;margin-left:80px;margin-bottom:10px;"
+                 required>
+
+          <br>
+          <span class="label label-@if(part.stage>6){success}else{primary}"
+                style="margin-left:100px">Asthma</span>
         </div>
+        
+        <br><br>
+        <input class="btn btn-@if(part.stage>6){success}else{primary}"
+               type="submit" @if(part.stage>6){disabled}/>
       </form>
     </div>
   </div>
