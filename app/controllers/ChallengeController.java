@@ -163,7 +163,8 @@ public class ChallengeController extends Controller {
     }
 
     public Result puzzle () {
-        return ok (puzzle.render());
+        //return ok (puzzle.render());
+        return ok(views.txt.puzzle.render());
     }
 
     public Result ttt (String message) {

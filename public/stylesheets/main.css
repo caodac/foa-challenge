@@ -5,3 +5,7 @@
 .index-page .wrapper > .header {
     height: 60vh;
 }
+
+.input-answer {
+    width: 250px;
+}
