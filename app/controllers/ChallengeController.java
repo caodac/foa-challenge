@@ -1,5 +1,6 @@
 package controllers;
 
+import play.shaded.ahc.io.netty.handler.codec.base64.Base64Encoder;
 import repository.C2ApiTester;
 import repository.ChallengeResponse;
 import repository.ParticipantRepository;
@@ -31,6 +32,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
+import javax.annotation.processing.Completion;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.*;
@@ -130,6 +132,10 @@ public class ChallengeController extends Controller {
             String file = config.getConfig("challenge")
                 .getConfig("c5").getString("graph-file");
             return env.getFile(file);
+        } else if (stage  == 3) {
+            String file = config.getConfig("challenge")
+                    .getConfig("c3").getString("notebook-file");
+            return env.getFile(file);
         }
         return null;
     }
@@ -145,12 +151,34 @@ public class ChallengeController extends Controller {
                                             .challenge(id).url());
 
                         String action = request().getQueryString("action");
-                        if (action != null
-                            && "download".equalsIgnoreCase(action)) {
-                            File file = download (stage);
-                            if (file != null) {
-                                Logger.debug(part.id+": download file "+file);
-                                return ok (file, false);
+                        if (action != null) {
+                            if ("download".equalsIgnoreCase(action)) {
+                                File file = download(stage);
+                                if (file != null) {
+                                    Logger.debug(part.id + ": download file " + file);
+                                    return ok(file, false);
+                                }
+                            } else if ("notebook".equalsIgnoreCase(action)) {
+                                Configuration conf = config.getConfig("challenge").getConfig("c3");
+                                String c3Url = conf.getString("handler-url");
+                                String encodedUrl = Base64.getEncoder().encodeToString(c3Url.getBytes());
+                                File file = download(stage);
+                                if (file != null) {
+                                    // read in file, replace string and send back
+                                    try {
+                                        BufferedReader reader = new BufferedReader(new FileReader(file));
+                                        StringBuilder sb = new StringBuilder();
+                                        String line;
+                                        while ((line = reader.readLine()) != null) sb.append(line);
+                                        reader.close();
+                                        String ret = sb.toString().replace("aHR0cHM6Ly9uY2F0cy5pby9jaGFsbGVuZ2UvYzMvaGFuZGxlcg==", encodedUrl);
+                                        response().setContentType("application/vnd.jupyter");
+                                        response().setHeader("Content-disposition","attachment; filename=Challenge3.ipynb");
+                                        return ok(ret.getBytes());
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
                         }
                         
@@ -165,7 +193,7 @@ public class ChallengeController extends Controller {
         catch (Exception ex) {
             Logger.warn("Not a valid challenge id: "+id);
             return async (ok (welcome.render()));
-        }       
+        }
     }
 
     public Result welcome () {
@@ -283,6 +311,23 @@ public class ChallengeController extends Controller {
             catch (Exception ex) {
                 return badRequestAsync ("Not a valid id: "+query+"\n");
             }
+        }
+    }
+
+    public CompletionStage<Result> reset(String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.fetch(uuid).thenApplyAsync(part -> {
+                part.stage = 1;
+                part.save();
+                return ok(Json.toJson(part));
+            }, httpExecutionContext.current()).exceptionally(t -> {
+                Logger.error("Failed to fetch and "
+                        + "update participant: " + id, t);
+                return badRequest("Unable to locate participant.\n");
+            });
+        } catch (Exception ex) {
+            return badRequestAsync("Not a valid id: " + id + "\n");
         }
     }
 
