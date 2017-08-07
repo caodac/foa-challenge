@@ -1,10 +1,15 @@
 package controllers;
 
+import repository.C2ApiTester;
+import repository.ChallengeResponse;
+import repository.ParticipantRepository;
+import models.Participant;
+
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.ebean.Transaction;
-import models.Participant;
 import org.apache.commons.math3.util.Precision;
+
 import play.Configuration;
 import play.Environment;
 import play.Logger;
@@ -17,9 +22,8 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import repository.C2ApiTester;
-import repository.ChallengeResponse;
-import repository.ParticipantRepository;
+import play.libs.mailer.Email;
+import play.libs.mailer.MailerClient;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -32,7 +36,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
-
 
 import javax.inject.Inject;
 import java.io.File;
@@ -49,6 +52,11 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
  * to the application's home page.
  */
 public class ChallengeController extends Controller {
+    static final String JSON_FORMAT =
+        "{\n\"email\":\"EMAIL\",\n"+
+        "\"firstname\":\"FIRSTNAME\",\n"+
+        "\"lastname\":\"LASTNAME\",\n"+
+        "\"answer\":\"YOUR ANSWER TO THE PUZZLE\"\n}\n";
 
     @Inject FormFactory formFactory;
 
@@ -65,7 +73,8 @@ public class ChallengeController extends Controller {
     @Inject Configuration config;
     @Inject Environment env;
     @Inject WSClient ws;
-
+    @Inject MailerClient mailer;
+    
     CompletionStage<Result> badRequestAsync (String mesg) {
         return supplyAsync (() -> {
                 return badRequest (mesg);
@@ -171,35 +180,68 @@ public class ChallengeController extends Controller {
         return ok (ttt.render(message));
     }
 
+    String sendmail (Participant part) {
+        Email email = new Email ()
+            .setSubject("[Translator Challenge] Registration")
+            .setFrom("NCATS Translator Team <translator-challenge@mail.nih.gov>")
+            .addTo(part.firstname+" "+part.lastname+" <"+part.email+">")
+            .setBodyText(views.txt.registration.render(part).body());
+        return mailer.send(email);
+    }
+
     @BodyParser.Of(value = BodyParser.Json.class)
     public CompletionStage<Result> register () {
         JsonNode json = request().body().asJson();
         Logger.debug(">>> "+json);
         if (!json.has("email"))
-            return badRequestAsync ("No \"email\" field provided!");
+            return badRequestAsync ("Bad JSON message; "
+                                    +"please use the format:\n"+JSON_FORMAT);
         
         Participant part = new Participant ();
         part.stage = 1;
         part.email = json.get("email").asText();
         if (part.email == null || part.email.equals(""))
-            return badRequestAsync ("Invalid email");
+            return badRequestAsync ("Bad JSON message; "
+                                    +"please use the format:\n"+JSON_FORMAT);
         
         if (!json.has("firstname"))
-            return badRequestAsync ("No \"firstname\" field provided!");
+            return badRequestAsync ("Bad JSON message; "
+                                    +"please use the format:\n"+JSON_FORMAT);
         part.firstname = json.get("firstname").asText();
         
         if (!json.has("lastname"))
-            return badRequestAsync ("No \"lastname\" field provided!");
+            return badRequestAsync ("Bad JSON message; "
+                                    +"please use the format:\n"+JSON_FORMAT);
         part.lastname = json.get("lastname").asText();
 
-        return repo.insert(part).thenApplyAsync(id -> {
-                return ok("Successfully registered participant: "+id+"\n");
-            }, httpExecutionContext.current()).exceptionally(t -> {
-                    Logger.error("Failed to register participant: "
-                                 +part.email, t);
-                    return badRequest ("Sorry, it appears the provided email "
-                                       +"has already been registered!");
-                });
+        if (!json.has("answer"))
+            return badRequestAsync ("Bad JSON message; "
+                                    +"please use the format:\n"+JSON_FORMAT);
+            
+        final String answer = json.get("answer").asText();
+        String key = config.getConfig("challenge")
+            .getConfig("puzzle").getString("key");
+        boolean correct = key.equalsIgnoreCase(answer);
+        
+        Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
+        if (correct) {
+            CompletionStage<Result> result =
+                repo.insert(part).thenApplyAsync(id -> {
+                    String mesgId = sendmail (part);
+                    Logger.debug("Sending registration email to "
+                                 +part.email+": "+mesgId);
+                    return env.isDev() ? ok (id.toString()) : null;
+                }, httpExecutionContext.current()).exceptionally(t -> {
+                        Logger.error("Failed to register participant: "
+                                     +part.email, t);
+                        return env.isDev() ? badRequest (t.getMessage()) : null;
+                    });
+            
+            if (result != null)
+                return result;
+        }
+        
+        return async (ok ()); // no acknowledgement; we do in email
     }
 
     public CompletionStage<Result> participant (String query) {

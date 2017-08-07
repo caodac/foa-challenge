@@ -1,0 +1,11 @@
+@(part: models.Participant)
+Hi @part.firstname,
+
+Congratulations! You are now registered for the Translator challenge. Your unique challenge url is:
+
+https://ncats.io/challenge/@part.id
+
+Please do not share this url; it's unique to you.
+
+Best of luck,
+NCATS Translator team
