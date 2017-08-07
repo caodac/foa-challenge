@@ -41,15 +41,14 @@
         <div class="section section-basic">
           <div class="container">
             <div id="ttt-board" class="ttt-board">
-              <img src=@routes.Assets.versioned("images/board.png") class="backgrd">
-              <div class="overlay">
-                <div id="tictactoe"></div>
-              </div>
             </div>
             <div align="left"><span id='turn'>Player X</span></div>
           </div>
         </div>
       </div>
+      <img id="board-image" src=@routes.Assets.versioned("images/board.png") style="display: none;">
+      <img id="cross-image" src=@routes.Assets.versioned("images/cross.png") style="display: none;">
+      <img id="circle-image" src=@routes.Assets.versioned("images/circle.png") style="display: none;">
       <textarea id="moveset" style="display:none;">
       @msg
       </textarea>
