@@ -22,6 +22,7 @@ import play.mvc.BodyParser;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import play.mvc.Call;
 import play.libs.mailer.Email;
 import play.libs.mailer.MailerClient;
 
@@ -173,19 +174,27 @@ public class ChallengeController extends Controller {
 
     public Result puzzle () {
         //return ok (puzzle.render());
-        return ok(views.txt.puzzle.render());
+        String url = getUrl (routes.ChallengeController.register());
+        return ok(views.txt.puzzle.render(url));
     }
 
     public Result ttt (String message) {
         return ok (ttt.render(message));
     }
 
+    String getUrl (Call call) {
+        String host = config.getString("play.http.host");
+        return host != null ? (host+call.url()) : call.absoluteURL(request());
+    }
+
     String sendmail (Participant part) {
+        String url = getUrl (routes.ChallengeController.challenge
+                             (part.id.toString()));
         Email email = new Email ()
             .setSubject("[Translator Challenge] Registration")
             .setFrom("NCATS Translator Team <translator-challenge@mail.nih.gov>")
             .addTo(part.firstname+" "+part.lastname+" <"+part.email+">")
-            .setBodyText(views.txt.registration.render(part).body());
+            .setBodyText(views.txt.registration.render(part, url).body());
         return mailer.send(email);
     }
 
@@ -219,8 +228,7 @@ public class ChallengeController extends Controller {
                                     +"please use the format:\n"+JSON_FORMAT);
             
         final String answer = json.get("answer").asText();
-        String key = config.getConfig("challenge")
-            .getConfig("puzzle").getString("key");
+        String key = config.getString("challenge.puzzle.key");
         boolean correct = key.equalsIgnoreCase(answer);
         
         Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
@@ -228,7 +236,7 @@ public class ChallengeController extends Controller {
             CompletionStage<Result> result =
                 repo.insert(part).thenApplyAsync(id -> {
                     String mesgId = sendmail (part);
-                    Logger.debug("Sending registration email to "
+                    Logger.debug("Sending registration "+id+" to "
                                  +part.email+": "+mesgId);
                     return env.isDev() ? ok (id.toString()) : null;
                 }, httpExecutionContext.current()).exceptionally(t -> {
