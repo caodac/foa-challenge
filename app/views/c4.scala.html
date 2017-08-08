@@ -4,7 +4,7 @@
 @(webjars: org.webjars.play.WebJarsUtil, part: Participant)
 
 @main(webjars, "NCATS Translator Challenge"){
-@navbar(part)
+@navbar(part, 4)
 }{
 @header(part, 4, "Challenge 4", "Blackboard Prototype")
 }{
@@ -13,10 +13,8 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      The <a href="https://en.wikipedia.org/wiki/Blackboard_system">blackboard architecture</a>, an agent-based architecture, has been proposed as the underlying
-      architecture for the eventual implementation of the
-      <a href="https://ncats.nih.gov/translator">Biomedical Translator</a>
-      during the feasibility phase. While far from complete, this
+      The <a href="https://en.wikipedia.org/wiki/Blackboard_system">blackboard architecture</a>, an agent-based architecture, has been proposed&mdash;during the feasibility phase&mdash;as the underlying architecture for the eventual implementation
+      of the <a href="https://ncats.nih.gov/translator">Biomedical Translator</a>. While far from complete, this
       <a href="https://spotlite.nih.gov/ncats/blackboard">codebase</a>
       provides an initial proof-of-concept implementation. The goal of this
       challenge is to give the participant an opportunity to be familiarized
@@ -90,9 +88,11 @@
             </div>
           </div>
         </div>
-        
+
+        @if(part.stage==4) {
         <input class="btn btn-@if(part.stage>4){success}else{primary}"
-               type="submit" @if(part.stage>4){disabled}/>      
+               type="submit"/>
+        }
       </form>
     </div>
   </div>

@@ -1,22 +1,14 @@
 @import models.Participant
-@(part: Participant)
-<nav class="navbar navbar-transparent navbar-fixed-top
-            navbar-color-on-scroll">
+@(part: Participant, stage: Int)
+<nav class="navbar navbar-default navbar-fixed-top navbar-color-on-scroll">
   <div class="container-fluid">
     <div class="navbar-header">
-      <button type="button" class="navbar-toggle"
-              data-toggle="collapse" data-target="#navigation-index">
-        <span class="sr-only">Toggle navigation</span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-        <span class="icon-bar"></span>
-      </button>
-      <span class="navbar-brand">Hi @part.firstname!</span> 
-    </div>
-    
-    <div class="collapse navbar-collapse" id="navigation-index">
-      <ul class="nav navbar-nav navbar-right">
-      </ul>
+      <span class="navbar-text">Hi @part.firstname!</span>
+      <span class="navbar-text navbar-right" style="margin-left:20px;">
+        @if(stage<=part.stage){
+            <a class="navbar-link" href="@controllers.routes.ChallengeController.foa(part.id.toString,stage)">FOA</a>
+        }
+      </span>
     </div>
   </div>
 </nav>

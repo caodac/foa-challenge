@@ -4,7 +4,7 @@
 @(webjars: org.webjars.play.WebJarsUtil, part: Participant)
 
 @main(webjars, "NCATS Translator Challenge"){
-@navbar(part)
+@navbar(part, 5)
 }{
 @header(part, 5, "Challenge 5", "Graph Queries")
 }{
@@ -137,9 +137,11 @@
             </div>
           </div>
         </div>
-        
+
+        @if(part.stage==5){
         <input class="btn btn-@if(part.stage>5){success}else{primary}"
                type="submit" @if(part.stage>5){disabled}/>
+        }
       </form>
     </div>
   </div>

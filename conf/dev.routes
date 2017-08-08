@@ -1,0 +1,8 @@
+##
+## for debugging purposes only!!
+##
+GET	/:id/@participant	controllers.dev.ChallengeControllerDev.participant(id: String)
+GET	/:id/@next	controllers.dev.ChallengeControllerDev.next(id: String)
+GET	/@list		controllers.dev.ChallengeControllerDev.list
+GET 	/:id/@reset 	controllers.dev.ChallengeControllerDev.reset(id: String)
+GET	/:id/@submissions controllers.dev.ChallengeControllerDev.submissions(id: String)

@@ -4,7 +4,7 @@
 @(webjars: org.webjars.play.WebJarsUtil, part: Participant)
 
 @main(webjars, "NCATS Translator Challenge"){
-@navbar(part)
+@navbar(part, 2)
 }{
 @header(part, 2, "Challenge 2", "Beacon API")
 }{
@@ -29,9 +29,11 @@
         </div>
         <br>For an example Swagger API definition file for a game agent,
         please see this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>example</a>.
-        
+
+        @if(part.stage == 2) {
         <br><input class="btn btn-@if(part.stage>2){success}else{primary}"
-               type="submit" @if(part.stage==3){disabled}/>
+                   type="submit"/>
+        }
       </form>
     </div>
   </div>

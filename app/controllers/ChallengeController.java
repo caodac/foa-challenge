@@ -3,8 +3,9 @@ package controllers;
 import play.shaded.ahc.io.netty.handler.codec.base64.Base64Encoder;
 import repository.C2ApiTester;
 import repository.ChallengeResponse;
-import repository.ParticipantRepository;
+import repository.Repository;
 import models.Participant;
+import models.Submission;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -71,7 +72,7 @@ public class ChallengeController extends Controller {
     @Inject views.html.Puzzle puzzle;
     @Inject views.html.TTT ttt;
     
-    @Inject ParticipantRepository repo;
+    @Inject Repository repo;
     @Inject HttpExecutionContext httpExecutionContext;
     @Inject Configuration config;
     @Inject Environment env;
@@ -112,7 +113,7 @@ public class ChallengeController extends Controller {
     public CompletionStage<Result> challenge (final String id) {
         try {
             UUID uuid = UUID.fromString(id);
-            return repo.fetch(uuid).thenApplyAsync(part -> {
+            return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
                     if (part != null)
                         return ok (challenge.render(part, part.stage));
                     return ok (welcome.render());
@@ -128,15 +129,18 @@ public class ChallengeController extends Controller {
     }
 
     File download (int stage) {
-        if (stage == 5) {
-            String file = config.getConfig("challenge")
-                .getConfig("c5").getString("graph-file");
-            return env.getFile(file);
-        } else if (stage  == 3) {
-            String file = config.getConfig("challenge")
-                    .getConfig("c3").getString("notebook-file");
-            return env.getFile(file);
+        switch (stage) {
+        case 5: return download (stage, "graph-file");
+        case 3: return download (stage, "notebook-file");
         }
+        return null;
+    }
+    
+    File download (int stage, String name) {
+        String file = config.getConfig("challenge.c"+stage).getString(name);
+        if (file != null)
+            return env.getFile(file);
+        
         return null;
     }
 
@@ -144,7 +148,7 @@ public class ChallengeController extends Controller {
                                           final Integer stage) {
         try {
             UUID uuid = UUID.fromString(id);
-            return repo.fetch(uuid).thenApplyAsync(part -> {
+            return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
                     if (part != null) {
                         if (stage > part.stage || stage < 1)
                             return redirect(routes.ChallengeController
@@ -280,105 +284,6 @@ public class ChallengeController extends Controller {
         return async (ok ()); // no acknowledgement; we do in email
     }
 
-    public CompletionStage<Result> participant (String query) {
-        /*
-        if (env.isProd())
-            return async (redirect
-                          (routes.ChallengeController.welcome().url()));
-        */
-        
-        int pos = query.indexOf('@');
-        if (pos > 0) { // email
-            return repo.fetch(query).thenApplyAsync(part -> {
-                    return ok (Json.toJson(part));
-                }, httpExecutionContext.current()).exceptionally(t -> {
-                        Logger.error("Failed to fetch participant: "+query, t);
-                        return badRequest ("Unable to locate participatan.\n");
-                    });
-        }
-        else {
-            try {
-                UUID id = UUID.fromString(query);
-                return repo.fetch(id).thenApplyAsync(part -> {
-                        return ok (Json.toJson(part));
-                    }, httpExecutionContext.current()).exceptionally(t -> {
-                            Logger.error("Failed to fetch participant: "
-                                         +query, t);
-                            return badRequest
-                                ("Unable to locate participant.\n");
-                        });
-            }
-            catch (Exception ex) {
-                return badRequestAsync ("Not a valid id: "+query+"\n");
-            }
-        }
-    }
-
-    public CompletionStage<Result> reset(String id) {
-        try {
-            UUID uuid = UUID.fromString(id);
-            return repo.fetch(uuid).thenApplyAsync(part -> {
-                part.stage = 1;
-                part.save();
-                return ok(Json.toJson(part));
-            }, httpExecutionContext.current()).exceptionally(t -> {
-                Logger.error("Failed to fetch and "
-                        + "update participant: " + id, t);
-                return badRequest("Unable to locate participant.\n");
-            });
-        } catch (Exception ex) {
-            return badRequestAsync("Not a valid id: " + id + "\n");
-        }
-    }
-
-    public CompletionStage<Result> next (String id) {
-        /*
-        if (env.isProd())
-            return async (redirect
-                          (routes.ChallengeController.welcome().url()));
-        */
-        
-        try {
-            UUID uuid = UUID.fromString(id);
-            return repo.fetch(uuid).thenApplyAsync(part -> {
-                    if (part.stage < getMaxStage ()) {
-                        try {
-                            Optional<Participant> ret = repo.nextStage(part)
-                                .toCompletableFuture().get();
-                            if (ret.isPresent())
-                                return ok (Json.toJson(ret.get()));
-                        }
-                        catch (Exception ex) {
-                            Logger.error("Failed to update next stage: "
-                                         +part.id, ex);
-                        }
-                    }
-                    return ok (Json.toJson(part));
-                }, httpExecutionContext.current()).exceptionally(t -> {
-                        Logger.error("Failed to fetch and "
-                                     +"update participant: "+id, t);
-                        return badRequest ("Unable to locate participant.\n");
-                    });
-        }
-        catch (Exception ex) {
-            return badRequestAsync ("Not a valid id: "+id+"\n");
-        }
-    }
-
-    public CompletionStage<Result> list () {
-        /*
-        if (env.isProd())
-            return async (redirect
-                          (routes.ChallengeController.welcome().url()));
-        */
-        
-        return repo.list().thenApplyAsync(list -> {
-                return ok (Json.toJson(list));
-            }, httpExecutionContext.current()).exceptionally(t -> {
-                    Logger.error("Failed to fetch participant list!", t);
-                    return internalServerError (t.getMessage());
-                });
-    }
 
     public CompletionStage<Result> handleC3Request() {
         DynamicForm dynamicForm = formFactory.form().bindFromRequest();
@@ -390,7 +295,7 @@ public class ChallengeController extends Controller {
         boolean magicIsCorrect = magic.equals(myMagic);
 
         // does this email exist?
-        return repo.fetch(email).thenApplyAsync(part -> {
+        return repo.fetchParticipant(email).thenApplyAsync(part -> {
             if (part == null)
                 return badRequest("This email address doesn't correspond"
                                   +" to a valid participant.\n");
@@ -398,6 +303,17 @@ public class ChallengeController extends Controller {
             if (part.stage > 3)
                 return ok("Challenge 3 has been solved.\n");
             else {
+                repo.submission(part, magic)
+                    .thenApplyAsync(sub -> {
+                        Logger.debug(part.id+": submission "
+                                     +sub.id+" => "+magic);
+                        return sub;
+                    }, httpExecutionContext.current()).exceptionally(t -> {
+                            Logger.error("Failed to insert submission for "
+                                         +part.id);
+                            return null;
+                        });
+                
                 if (!magicIsCorrect)
                     return badRequest("Sorry, invalid magic value "
                                       +"specified. Try again.\n");
@@ -413,12 +329,25 @@ public class ChallengeController extends Controller {
     @BodyParser.Of(value = BodyParser.MultipartFormData.class)
     public CompletionStage<Result> handleC7Request(String id) {
         UUID uuid = UUID.fromString(id);
-        return repo.fetch(uuid).thenApplyAsync(part -> {
-            Http.MultipartFormData<File> body = request().body().asMultipartFormData();
+        return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
+            Http.MultipartFormData<File> body =
+                request().body().asMultipartFormData();
             Http.MultipartFormData.FilePart<File> filePart = body.getFile("c7assoc");
-            if (filePart == null) return badRequest("No association file was provided");
+            if (filePart == null)
+                return badRequest("No association file was provided");
+            
             File csvFile = filePart.getFile();
             try {
+                repo.submission(part, csvFile).thenApplyAsync(sub -> {
+                        Logger.debug(part.id+": submission "+sub.id
+                                     +" => "+csvFile);
+                        return sub;
+                    }, httpExecutionContext.current()).exceptionally(t -> {
+                            Logger.error("Failed to insert submission for "
+                                         +part.id+" "+csvFile);
+                            return null;
+                        });
+                
                 List<String> genes = new ArrayList<String>();
                 List<String> diseases = new ArrayList<String>();
                 double probSum = 0.0;
@@ -458,8 +387,6 @@ public class ChallengeController extends Controller {
             Logger.error("Failed to fetch participant: " + id, t);
             return badRequest("Something bad happened such as a malformed CSV.\n");
         });
-
-
     }
 
     boolean checkC5 (Participant part, Map<String, String[]> data) {
@@ -626,7 +553,7 @@ public class ChallengeController extends Controller {
                                            final Integer stage) {
         try {
             UUID uuid = UUID.fromString(id);
-            return repo.fetch(uuid).thenApplyAsync(part -> {
+            return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
                     if (part != null) {
                         if (!stage.equals(part.stage))
                             return redirect(routes.ChallengeController
@@ -635,6 +562,19 @@ public class ChallengeController extends Controller {
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
 
+                        repo.submission(part, Json.stringify(Json.toJson(data)))
+                            .thenApplyAsync(sub -> {
+                                    Logger.debug(part.id+": submission "+sub.id
+                                                 +" created!");
+                                    return sub;
+                                }, httpExecutionContext.current())
+                            .exceptionally(t -> {
+                                    Logger.error
+                                        ("Failed to insert submission for "
+                                         +part.id);
+                                    return null;
+                                });
+                        
                         // check the answer
                         switch (stage) {
                         case 1:
@@ -644,7 +584,8 @@ public class ChallengeController extends Controller {
                             
                         case 2:
                             ChallengeResponse resp = checkC2 (part, data);
-                            Logger.debug(part.id+": "+resp.success+": "+resp.message);
+                            Logger.debug(part.id+": "+resp.success
+                                         +": "+resp.message);
                             if (resp.success > 0) {
                                 repo.incrementStage(part); // advance to next stage
                                 return ttt(resp.message);
@@ -667,6 +608,8 @@ public class ChallengeController extends Controller {
                             if (checkC6 (part, data)){
                                 repo.nextStage(part);
                             }
+                            break;
+                            
                         case 7:
                             break;
                         }
@@ -686,4 +629,31 @@ public class ChallengeController extends Controller {
             return async (redirect (routes.ChallengeController.welcome()));
         }
     }
+
+    public CompletionStage<Result> foa (final String id,
+                                        final Integer stage) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
+                    if (part != null && stage <= part.stage) {
+                        File foa = download (stage, "foa-file");
+                        if (foa != null) {
+                            return ok (foa);
+                        }
+                        else {
+                            Logger.warn
+                                ("Can't download FOA file for stage "+stage);
+                        }
+                    }
+                    return redirect (routes.ChallengeController.welcome());
+                }, httpExecutionContext.current()).exceptionally(t -> {
+                        Logger.error("Failed to fetch participant: "+id, t);
+                        return redirect (routes.ChallengeController.welcome());
+                    });
+        }
+        catch (Exception ex) {
+            Logger.warn("Not a valid challenge id: "+id);
+            return async (redirect (routes.ChallengeController.welcome()));
+        }
+    }       
 }

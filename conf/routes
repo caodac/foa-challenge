@@ -1,13 +1,10 @@
 # Routes
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
-##
-## for debugging purposes only!!
-##
-GET	/:id/@participant	controllers.ChallengeController.participant(id: String)
-GET	/:id/@next	controllers.ChallengeController.next(id: String)
-GET	/@list		controllers.ChallengeController.list
-GET /:id/@reset controllers.ChallengeController.reset(id: String)
+#
+# COMMENT THIS OUT IN PRODUCTION!!!!
+#
+->	/	dev.Routes
 
 ##
 ## main resources
@@ -18,6 +15,7 @@ POST	/	controllers.ChallengeController.register
 GET	/:id	controllers.ChallengeController.challenge(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
 GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
+GET	/:id/:stage/foa	controllers.ChallengeController.foa(id: String, stage: Int)
 #
 # should really figure out how to properly handle CSRF filter
 #
@@ -31,3 +29,4 @@ POST /c7/handler controllers.ChallengeController.handleC7Request(id: String)
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
 ->	/webjars       webjars.Routes
+

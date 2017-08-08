@@ -4,7 +4,7 @@
 @(webjars: org.webjars.play.WebJarsUtil, part: Participant)
 
 @main(webjars, "NCATS Translator Challenge"){
-@navbar(part)
+@navbar(part, 3)
 }{
 @header(part, 3, "Challenge 3", "Jupyter Notebooks")
 }{
@@ -31,8 +31,10 @@
       reloading this URL or clicking on the button below, after you have
       sucessfully run the notebook.
 
+      @if(part.stage==3) {
       <br><a class="btn btn-@if(part.stage>3){success}else{primary}"
-             href="@controllers.routes.ChallengeController.challenge(part.id.toString)" @if(part.stage>3){disabled}>Next</a>
+             href="@controllers.routes.ChallengeController.challenge(part.id.toString)">Next</a>
+      }
       </p>
     </div>
   </div>
