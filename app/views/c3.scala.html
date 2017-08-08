@@ -20,7 +20,7 @@
 
       <br><br>The aim of this challenge is to download and run the Python
       notebook available
-      <a href="@routes.Assets.versioned("notebooks/Challenge3.ipynb")">here</a>.
+      <a href='@{controllers.routes.ChallengeController.stage(part.id.toString,3) + "?action=notebook"}'>here</a>.
       This will require you to setup a <a href="http://jupyter.org/">Jupyter</a>
       environment, install any required Python packages and fix the code
       so that it runs.
@@ -28,7 +28,8 @@
       <br><br>If you're succcessful there should be no errors and an
       HTTP <code>200</code>
       status code. You can progress to the next stage of the challenge by
-      clicking on the button below.
+      reloading this URL or clicking on the button below, after you have
+      sucessfully run the notebook.
 
       <br><a class="btn btn-@if(part.stage>3){success}else{primary}"
              href="@controllers.routes.ChallengeController.challenge(part.id.toString)" @if(part.stage>3){disabled}>Next</a>
