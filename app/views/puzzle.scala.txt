@@ -1,11 +1,11 @@
 @(url: String)
-Thank you for your interest in the NCATS Translator challenge. In order to qualify for the challenge, we ask that you first solve the problem described below. Please POST your answer along with contact information (i.e., email and name) to this address @url. Note that you will only receive an email confirmation from us if you have successfully solved the problem. You may submit your answer as often as you'd like. While there are no limits to the rate and number of submissions, please keep in mind the delay in email response as you make your submissions. Best of luck!
+Thank you for your interest in the NCATS Translator challenge. In order to qualify for the challenge, we ask that you first solve the problem described below. Please POST your answer along with contact information (i.e., email and name) to this address @url. (We leave it up to you to decide how you want to format your submission.) Note that you will only receive an email confirmation from us if you have successfully solved the problem. You may submit your answer as often as you'd like. While there are no limits to the rate and number of submissions, please keep in mind the delay in email response as you make your submissions. Best of luck!
 
-The year is 2157. Bacteria of unknown origin threaten humanity with devastating pandemics never before seen. The bacteria are resistant to all known antibiotics. An NCATS scientist by the name of Lothar, with background in mathematics, discovers a new drug modality that can stop the bacteria. This new modality, through an ingenious encoding technique, strategically modifies key amino acid residues of a beta-defensin peptide so as to allow the drug to work synergistically with the body's immune system. There are 18 modified residues in the following peptide.
+In a far-distant future, bacteria of unknown origin threaten humanity with devastating pandemics never before seen. The bacteria are resistant to all known antibiotics. An NCATS scientist by the name of Lothar, with background in mathematics, discovers a new drug modality that can stop the bacteria. This new modality, through an ingenious encoding technique, strategically modifies key amino acid residues of a beta-defensin peptide so as to allow the drug to work synergistically with the body's immune system. There are 18 modified residues in the following peptide.
 
 ICVIDLAVSISFNCLIRLPVVEGGIEDPVTCLKAGAICHIVFCPRRYKQIGVCGLPGTKCCKKP
 
-In order for the peptide to act synergistically (i.e., achieve target recognition), these modified 18 residues must be decoded in a specific order. In the moment that leads to his discovery, Dr. Lothar proclaims "all roads must lead to Rome" and proceeds to decode the peptide into possible sequences for target recognition.
+In order for the peptide to act synergistically (i.e., achieve target recognition), these modified 18 residues must be transcribed in a specific order. In the moment that leads to his discovery, Dr. Lothar proclaims "all roads must lead to Rome" and proceeds to transcribe the peptide into possible sequences for target recognition.
 
  1: I
  2: CI
@@ -25,7 +25,12 @@ In order for the peptide to act synergistically (i.e., achieve target recognitio
 21: VPLIVICI
 
  ....
- 
+
+59: ^^^NOT A VALID SEQUENCE^^^
+60: ^^^NOT A VALID SEQUENCE^^^
+61: ^^^NOT A VALID SEQUENCE^^^
+62: ^^^NOT A VALID SEQUENCE^^^
+63: ^^^NOT A VALID SEQUENCE^^^
 64: PLIVICI
 
 Can you identify the required 18-residue sequence for target recongition in this peptide?

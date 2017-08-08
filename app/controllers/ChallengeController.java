@@ -198,10 +198,14 @@ public class ChallengeController extends Controller {
         return mailer.send(email);
     }
 
-    @BodyParser.Of(value = BodyParser.Json.class)
+    @BodyParser.Of(value = BodyParser.AnyContent.class)
     public CompletionStage<Result> register () {
         JsonNode json = request().body().asJson();
         Logger.debug(">>> "+json);
+        if (json == null)
+            return badRequestAsync ("Please make sure your Content-Type "
+                                    +"header is set to application/json!\n");
+        
         if (!json.has("email"))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
@@ -233,20 +237,16 @@ public class ChallengeController extends Controller {
         
         Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
         if (correct) {
-            CompletionStage<Result> result =
-                repo.insert(part).thenApplyAsync(id -> {
+            return repo.insert(part).thenApplyAsync(id -> {
                     String mesgId = sendmail (part);
                     Logger.debug("Sending registration "+id+" to "
                                  +part.email+": "+mesgId);
-                    return env.isDev() ? ok (id.toString()) : null;
+                    return env.isDev() ? ok (id.toString()) : ok ();
                 }, httpExecutionContext.current()).exceptionally(t -> {
                         Logger.error("Failed to register participant: "
                                      +part.email, t);
-                        return env.isDev() ? badRequest (t.getMessage()) : null;
+                        return env.isDev() ? badRequest (t.getMessage()) : ok ();
                     });
-            
-            if (result != null)
-                return result;
         }
         
         return async (ok ()); // no acknowledgement; we do in email
