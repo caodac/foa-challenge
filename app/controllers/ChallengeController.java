@@ -8,9 +8,9 @@ import models.Participant;
 import models.Submission;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.fasterxml.jackson.databind.JsonNode;
-import io.ebean.Transaction;
 import org.apache.commons.math3.util.Precision;
+
+import com.fasterxml.jackson.databind.JsonNode;
 
 import play.Configuration;
 import play.Environment;
@@ -263,25 +263,30 @@ public class ChallengeController extends Controller {
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
             
-        final String answer = json.get("answer").asText();
+        final String answer = json.get("answer").asText().trim();
         String key = config.getString("challenge.puzzle.key");
         boolean correct = key.equalsIgnoreCase(answer);
         
         Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
+        String response = "Thank you for your submission. If your submission "
+            +"is correct, you will receive an email confirmation.\n"
+            +Json.prettyPrint(json)+"\n";
+        
         if (correct) {
             return repo.insert(part).thenApplyAsync(id -> {
                     String mesgId = sendmail (part);
                     Logger.debug("Sending registration "+id+" to "
                                  +part.email+": "+mesgId);
-                    return env.isDev() ? ok (id.toString()) : ok ();
+                    return env.isDev() ? ok (id.toString()) : ok (response);
                 }, httpExecutionContext.current()).exceptionally(t -> {
                         Logger.error("Failed to register participant: "
                                      +part.email, t);
-                        return env.isDev() ? badRequest (t.getMessage()) : ok ();
+                        return env.isDev() ? badRequest (t.getMessage())
+                            : ok (response);
                     });
         }
         
-        return async (ok ()); // no acknowledgement; we do in email
+        return async (ok (response)); // no acknowledgement; we do in email
     }
 
 
@@ -333,8 +338,10 @@ public class ChallengeController extends Controller {
             Http.MultipartFormData<File> body =
                 request().body().asMultipartFormData();
             Http.MultipartFormData.FilePart<File> filePart = body.getFile("c7assoc");
-            if (filePart == null)
-                return badRequest("No association file was provided");
+            if (filePart == null) {
+                flash ("error", "No association file was provided");
+                return redirect(routes.ChallengeController.challenge(id));
+            }
             
             File csvFile = filePart.getFile();
             try {
@@ -365,24 +372,39 @@ public class ChallengeController extends Controller {
                 Set<String> geneSet = new HashSet<String>(genes);
                 Set<String> diseaseSet = new HashSet<String>(diseases);
 
-                if (geneSet.size() != 2000)
-                    return badRequest("Your calculation failed. Incorrect number of genes.\n");
-                if (diseaseSet.size() != 500)
-                    return badRequest("Your calculation failed. Incorrect number of diseases.\n");
+                if (geneSet.size() != 2000) {
+                    flash ("error", "Your calculation failed. "
+                           +"Incorrect number of genes.");
+                    return redirect (routes.ChallengeController.challenge(id));
+                }
+                
+                if (diseaseSet.size() != 500) {
+                    flash ("error", "Your calculation failed. Incorrect "
+                           +"number of diseases.");
+                    return redirect (routes.ChallengeController.challenge(id));
+                }
+                
                 // check that we got the maximal probability
-                if (Precision.round(probSum,2) != 0.95)
-                    return badRequest("Your calculation failed. The sum of knowledge scores is not minimal.\n");
+                if (Precision.round(probSum,2) != 0.95) {
+                    flash ("error", "Your calculation failed. The "
+                           +"sum of knowledge scores is not minimal.");
+                    return redirect (routes.ChallengeController.challenge(id));
+                }
 
                 repo.nextStage(part);
                 return redirect(routes.ChallengeController.challenge(id));
 
             } catch (FileNotFoundException e) {
-                return internalServerError("Error opening CSV file.\n" + e.getMessage() + "\n");
+                flash ("error", "Error opening CSV file. <code>"
+                       + e.getMessage() + "</code>");
+                Logger.error("Error opening CSV file", e);
             } catch (IOException e) {
-                return internalServerError("Error opening CSV file.\n" + e.getMessage() + "\n");
+                flash ("error", "Error opening CSV file. <code>"
+                       + e.getMessage() + "</code>");
+                Logger.error("Error opening CSV file", e);
             }
-
-
+            
+            return redirect(routes.ChallengeController.challenge(id));
         }, httpExecutionContext.current()).exceptionally(t -> {
             Logger.error("Failed to fetch participant: " + id, t);
             return badRequest("Something bad happened such as a malformed CSV.\n");
@@ -576,10 +598,12 @@ public class ChallengeController extends Controller {
                                 });
                         
                         // check the answer
+                        boolean passed = false;
                         switch (stage) {
                         case 1:
                             // advance to next stage
                             repo.nextStage(part);
+                            passed = true;
                             break;
                             
                         case 2:
@@ -593,25 +617,30 @@ public class ChallengeController extends Controller {
                             return ok(resp.message);
                             
                         case 4:
-                            if (checkC4 (part, data)) {
+                            passed = checkC4 (part, data);
+                            if (passed) {
                                 repo.nextStage(part); // advance to next stage
                             }
                             break;
                             
                         case 5:
-                            if (checkC5 (part, data)) {
+                            passed = checkC5 (part, data);
+                            if (passed) {
                                 repo.nextStage(part); // advance to next stage
                             }
                             break;
                             
                         case 6:
-                            if (checkC6 (part, data)){
+                            passed = checkC6 (part, data);
+                            if (passed) {
                                 repo.nextStage(part);
                             }
                             break;
-                            
-                        case 7:
-                            break;
+                        }
+
+                        if (!passed) {
+                            flash ("error", "One or more of your answers "
+                                   +"are in correct; please try again!");
                         }
 
                         return redirect

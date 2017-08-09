@@ -11,14 +11,24 @@
     <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700"/>
     <link rel="stylesheet" media="screen" href='@webjars.url("font-awesome.min.css")'>
     <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/bootstrap.min.css")">
-    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/material-kit.css")">	
-    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">	
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/material-kit.css")">      
+    <link rel="stylesheet" media="screen" href="@routes.Assets.versioned("stylesheets/main.css")">      
     <link rel="shortcut icon" type="image/png" href="@routes.Assets.versioned("images/favicon.png")">
   </head>
   <body class="index-page">
     @nav
     @header
     <div class="main main-raised">
+      @if(flash.containsKey("error")) {
+      <div class="alert alert-danger" role="alert">
+        <button type="button" class="close" data-dismiss="alert"
+                aria-label="Close"><span aria-hidden="true">&times;</span>
+        </button>
+        <span class="text-align:center">
+          <strong style="font-size:larger">@flash.get("error")</strong>
+        </span>
+      </div>        
+      }
       @content
     </div>
     @footer
