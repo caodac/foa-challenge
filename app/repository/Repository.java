@@ -10,6 +10,7 @@ import models.Submission;
 
 import play.db.ebean.EbeanConfig;
 import play.Logger;
+import play.libs.Json;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -20,6 +21,7 @@ import java.util.concurrent.CompletionStage;
 import java.nio.file.Files;
 import java.io.File;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 /**
@@ -41,16 +43,57 @@ public class Repository {
 
     public CompletionStage<UUID> insert (Participant part) {
         return supplyAsync(() -> {
-                part.created = System.currentTimeMillis();
-                part.save();
-                return part.id;
+                Transaction tx = ebeanServer.beginTransaction();
+                try {
+                    part.created = System.currentTimeMillis();
+                    part.save();
+                    tx.commit();
+                    return part.id;
+                }
+                finally {
+                    tx.end();
+                }
             }, executionContext);
     }
 
-    public CompletionStage<Long> insert (Submission submission) {
+    public CompletionStage<UUID> insert (Submission submission) {
         return supplyAsync(() -> {
-                submission.save();
-                return submission.id;
+                Transaction tx = ebeanServer.beginTransaction();
+                try {
+                    submission.save();
+                    tx.commit();
+                    return submission.id;
+                }
+                finally {
+                    tx.end();
+                }
+            }, executionContext);
+    }
+
+    public CompletionStage<Participant> insertIfAbsent (Participant part) {
+        return supplyAsync(() -> {
+                Transaction tx = ebeanServer.beginTransaction();
+                try {
+                    Participant p = Participant.finder.query()
+                        .where().eq("email", part.email).findUnique();
+                    if (p == null) {
+                        part.created = System.currentTimeMillis();
+                        p = part;
+                        part.save();
+                        tx.commit();
+                    }
+                    else if (part.name != null
+                             && !part.name.equals(p.name)) {
+                        p.updated = System.currentTimeMillis();
+                        p.name = part.name;
+                        p.update();
+                        tx.commit();
+                    }
+                    return p;
+                }
+                finally {
+                    tx.end();
+                }
             }, executionContext);
     }
     
@@ -96,18 +139,33 @@ public class Repository {
     }
 
     public CompletionStage<Submission> submission
+        (Participant part, Object data) {
+        return submission (part, Json.toJson(data));
+    }
+    
+    public CompletionStage<Submission> submission
+        (Participant part, JsonNode json) {
+        return submission (part, Json.stringify(json));
+    }
+    
+    public CompletionStage<Submission> submission
         (Participant part, String payload) {
         return supplyAsync (() -> {
+                Transaction tx = ebeanServer.beginTransaction();
                 try {
                     Submission sub = new Submission (part);
                     sub.payload = payload.getBytes("utf8");
                     sub.psize = sub.payload.length;
                     sub.save();
+                    tx.commit();
                     return sub;
                 }
                 catch (Exception ex) {
                     Logger.error("Failed to persist submission", ex);
                     return null;
+                }
+                finally {
+                    tx.end();
                 }
             }, executionContext);
     }
@@ -115,16 +173,21 @@ public class Repository {
     public CompletionStage<Submission> submission
         (Participant part, File payload) {
         return supplyAsync (() -> {
+                Transaction tx = ebeanServer.beginTransaction();                
                 try {
                     Submission sub = new Submission (part);
                     sub.payload = Files.readAllBytes(payload.toPath());
                     sub.psize = sub.payload.length;
                     sub.save();
+                    tx.commit();
                     return sub;
                 }
                 catch (Exception ex) {
                     Logger.error("Failed to read file "+payload, ex);
                     return null;
+                }
+                finally {
+                    tx.end();
                 }
             }, executionContext);
     }

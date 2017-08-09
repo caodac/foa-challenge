@@ -1,5 +1,6 @@
 package models;
 
+import java.util.UUID;
 import io.ebean.Finder;
 import io.ebean.Model;
 
@@ -9,10 +10,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
 public class Submission extends Model {
-    public static final Finder<Long, Submission> finder =
+    public static final Finder<UUID, Submission> finder =
         new Finder<>(Submission.class);
 
-    @Id public Long id;
+    @Id public UUID id;
     public Long created;
     
     @Column(nullable=false)
@@ -43,7 +44,7 @@ public class Submission extends Model {
 
     @JsonProperty("payload")
     public String getPayload () {
-        if (psize != null && psize < 1024) {
+        if (payload != null && payload.length < 1024) {
             return new String (payload);
         }
         return null;

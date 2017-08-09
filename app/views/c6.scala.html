@@ -69,10 +69,12 @@
           <span class="label label-@if(part.stage>6){success}else{primary}"
                 style="margin-left:100px">Asthma</span>
         </div>
-        
+
+        @if(part.stage == 6){
         <br><br>
         <input class="btn btn-@if(part.stage>6){success}else{primary}"
                type="submit" @if(part.stage>6){disabled}/>
+        }
       </form>
     </div>
   </div>

@@ -17,7 +17,7 @@
             <ul class="pagination">
               @for(i <- 1 to 8) {
 	        @if(i <= part.stage) {
-		   <li @if(i==stage){class="active"}><a href='@routes.ChallengeController.stage(part.id.toString,i)' @if(i<part.stage && i!=stage){style="background-color:#4caf50"}><span style="color:white;">@i</span></a></li>
+		   <li @if(i==stage){class="active"}><a href='@routes.ChallengeController.stage(part.id.toString,i)' @if(i<=part.stage && i!=stage){style="background-color:#4caf50"}><span style="color:white;">@i</span></a></li>
 		} else {
 		   <li><span style="color:white;">@i</span></li>
 	        }

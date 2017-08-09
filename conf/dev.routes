@@ -6,3 +6,4 @@ GET	/:id/@next	controllers.dev.ChallengeControllerDev.next(id: String)
 GET	/@list		controllers.dev.ChallengeControllerDev.list
 GET 	/:id/@reset 	controllers.dev.ChallengeControllerDev.reset(id: String)
 GET	/:id/@submissions controllers.dev.ChallengeControllerDev.submissions(id: String)
+GET	/:id/:stage/@next	  controllers.dev.ChallengeControllerDev.advance(id: String, stage: Int)

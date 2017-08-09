@@ -12,6 +12,7 @@ libraryDependencies ++= Seq(
   jdbc,
   ws,
   "com.h2database" % "h2" % "1.4.194",
+  "mysql" % "mysql-connector-java" % "5.1.43",
   "com.typesafe.play" %% "play-json" % "2.6.0",
   "com.typesafe.play" %% "play-ahc-ws-standalone" % "1.0.0",
   "com.typesafe.play" %% "play-ws-standalone-xml" % "1.0.0",

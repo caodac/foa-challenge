@@ -19,10 +19,10 @@ public class Participant extends Model {
     public Long created;
     public Long updated;
     
-    @Column(nullable=false,unique=true)
+    @Column(nullable=false,unique=true,length=128)
     public String email;
-    public String firstname;
-    public String lastname;
+    @Column(length=128)
+    public String name;
 
     @Column(nullable=false)
     public Integer stage;

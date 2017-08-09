@@ -21,32 +21,10 @@ import javax.inject.Inject;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
 
+import controllers.ChallengeController;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-public class ChallengeControllerDev extends Controller {
-    @Inject Repository repo;
-    @Inject HttpExecutionContext httpExecutionContext;
-    @Inject Configuration config;
-    
-    CompletionStage<Result> badRequestAsync (String mesg) {
-        return supplyAsync (() -> {
-                return badRequest (mesg);
-            }); 
-    }
-
-    static CompletionStage<Result> async (Result result) {
-        return supplyAsync (() -> {
-                return result;
-            });
-    }
-
-    public Integer getMaxStage () {
-        Configuration value = config.getConfig("challenge");
-        if (value != null) {
-            return value.getInt("max-stage", 0);
-        }
-        return 0;
-    }
+public class ChallengeControllerDev extends ChallengeController {
     
     public CompletionStage<Result> participant (String query) {
         int pos = query.indexOf('@');
@@ -150,6 +128,49 @@ public class ChallengeControllerDev extends Controller {
         catch (Exception ex) {
             Logger.error("Not a valid uuid: "+id, ex);
             return async (internalServerError (ex.getMessage()));
+        }
+    }
+
+    /* advance to next stage but don't have to submit the answer */
+    public CompletionStage<Result> advance (String id, Integer stage) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
+                    if (part != null) {
+                        if (!stage.equals(part.stage))
+                            return redirect(controllers.routes
+                                            .ChallengeController.challenge(id));
+                        try {
+                            Optional<Participant> opt = repo.nextStage(part)
+                                .toCompletableFuture().get();
+                            if (!opt.isPresent())
+                                return redirect
+                                    (controllers.routes
+                                     .ChallengeController.welcome());
+                        }
+                        catch (Exception ex) {
+                            Logger.error("Can't increment next stage for "
+                                         +part.id, ex);
+                            return redirect
+                                (controllers.routes.ChallengeController.welcome());
+                        }
+                        
+                        return redirect
+                            (controllers.routes.ChallengeController.challenge(id));
+                    }
+                    
+                    return redirect
+                        (controllers.routes.ChallengeController.welcome());
+                }, httpExecutionContext.current()).exceptionally(t -> {
+                        Logger.error("Failed to fetch participant: "+id, t);
+                        return redirect (controllers.routes
+                                         .ChallengeController.welcome());
+                    });
+        }
+        catch (Exception ex) {
+            Logger.warn("Not a valid challenge id: "+id);
+            return async (redirect (controllers.routes
+                                    .ChallengeController.welcome()));
         }
     }
 }

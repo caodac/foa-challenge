@@ -58,34 +58,33 @@ import static java.util.concurrent.CompletableFuture.supplyAsync;
 public class ChallengeController extends Controller {
     static final String JSON_FORMAT =
         "{\n\"email\":\"EMAIL\",\n"+
-        "\"firstname\":\"FIRSTNAME\",\n"+
-        "\"lastname\":\"LASTNAME\",\n"+
+        "\"name\":\"TEAM NAME\",\n"+
         "\"answer\":\"YOUR ANSWER TO THE PUZZLE\"\n}\n";
 
-    @Inject FormFactory formFactory;
+    @Inject protected FormFactory formFactory;
 
     /*
      * views
      */
-    @Inject views.html.Challenge challenge;
-    @Inject views.html.Welcome welcome;
-    @Inject views.html.Puzzle puzzle;
-    @Inject views.html.TTT ttt;
+    @Inject protected views.html.Challenge challenge;
+    @Inject protected views.html.Welcome welcome;
+    @Inject protected views.html.Puzzle puzzle;
+    @Inject protected views.html.TTT ttt;
     
-    @Inject Repository repo;
-    @Inject HttpExecutionContext httpExecutionContext;
-    @Inject Configuration config;
-    @Inject Environment env;
-    @Inject WSClient ws;
-    @Inject MailerClient mailer;
+    @Inject protected Repository repo;
+    @Inject protected HttpExecutionContext httpExecutionContext;
+    @Inject protected Configuration config;
+    @Inject protected Environment env;
+    @Inject protected WSClient ws;
+    @Inject protected MailerClient mailer;
     
-    CompletionStage<Result> badRequestAsync (String mesg) {
+    protected CompletionStage<Result> badRequestAsync (String mesg) {
         return supplyAsync (() -> {
                 return badRequest (mesg);
             }); 
     }
 
-    static CompletionStage<Result> async (Result result) {
+    static protected CompletionStage<Result> async (Result result) {
         return supplyAsync (() -> {
                 return result;
             });
@@ -128,7 +127,7 @@ public class ChallengeController extends Controller {
         }
     }
 
-    File download (int stage) {
+    protected File download (int stage) {
         switch (stage) {
         case 5: return download (stage, "graph-file");
         case 3: return download (stage, "notebook-file");
@@ -136,7 +135,7 @@ public class ChallengeController extends Controller {
         return null;
     }
     
-    File download (int stage, String name) {
+    protected File download (int stage, String name) {
         String file = config.getConfig("challenge.c"+stage).getString(name);
         if (file != null)
             return env.getFile(file);
@@ -214,6 +213,14 @@ public class ChallengeController extends Controller {
         return ok (ttt.render(message));
     }
 
+    Result fatal () {
+        return internalServerError
+            ("We apologize; there seems to be a great disturbance in our "
+             +"force field.\nPlease send an email to "
+             +"translator-challenge@mail.nih.gov should\n"
+             +"the problem persists.\n");
+    }
+
     String getUrl (Call call) {
         String host = config.getString("play.http.host");
         return host != null ? (host+call.url()) : call.absoluteURL(request());
@@ -224,8 +231,8 @@ public class ChallengeController extends Controller {
                              (part.id.toString()));
         Email email = new Email ()
             .setSubject("[Translator Challenge] Registration")
-            .setFrom("NCATS Translator Team <translator-challenge@mail.nih.gov>")
-            .addTo(part.firstname+" "+part.lastname+" <"+part.email+">")
+            .setFrom("\"NCATS Translator Team\" <translator-challenge@mail.nih.gov>")
+            .addTo(part.name+" <"+part.email+">")
             .setBodyText(views.txt.registration.render(part, url).body());
         return mailer.send(email);
     }
@@ -243,50 +250,74 @@ public class ChallengeController extends Controller {
                                     +"please use the format:\n"+JSON_FORMAT);
         
         Participant part = new Participant ();
-        part.stage = 1;
+        part.stage = 0;
         part.email = json.get("email").asText();
         if (part.email == null || part.email.equals(""))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
         
-        if (!json.has("firstname"))
+        if (!json.has("name"))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
-        part.firstname = json.get("firstname").asText();
-        
-        if (!json.has("lastname"))
+        part.name = json.get("name").asText();
+        if (part.name == null || part.name.equals(""))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
-        part.lastname = json.get("lastname").asText();
 
         if (!json.has("answer"))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
             
         final String answer = json.get("answer").asText().trim();
-        String key = config.getString("challenge.puzzle.key");
-        boolean correct = key.equalsIgnoreCase(answer);
+        final String key = config.getString("challenge.puzzle.key");
+        final boolean correct = key.equalsIgnoreCase(answer);
         
         Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
         String response = "Thank you for your submission. If your submission "
             +"is correct, you will receive an email confirmation.\n"
             +Json.prettyPrint(json)+"\n";
         
-        if (correct) {
-            return repo.insert(part).thenApplyAsync(id -> {
-                    String mesgId = sendmail (part);
-                    Logger.debug("Sending registration "+id+" to "
-                                 +part.email+": "+mesgId);
-                    return env.isDev() ? ok (id.toString()) : ok (response);
-                }, httpExecutionContext.current()).exceptionally(t -> {
-                        Logger.error("Failed to register participant: "
-                                     +part.email, t);
-                        return env.isDev() ? badRequest (t.getMessage())
-                            : ok (response);
-                    });
-        }
-        
-        return async (ok (response)); // no acknowledgement; we do in email
+        return repo.insertIfAbsent(part).thenApplyAsync(p -> {
+                int stage = p.stage.intValue();
+                if (stage == 0) {
+                    try {
+                        Submission sub = repo.submission
+                            (p, json).toCompletableFuture().get();
+                        if (correct) {
+                            repo.incrementStage(p);
+                            String mesgId = sendmail (p);
+                            Logger.debug("Sending registration "+p.id+" to "
+                                         +p.email+": "+mesgId);
+                        }
+                        return ok (response+"submission-id: "+sub.id+"\n");
+                    }
+                    catch (Exception ex) {
+                        Logger.error("Can't create submission", ex);
+                        return fatal ();
+                    }
+                }
+                else {
+                    /*
+                    return ok ("Please visit "
+                               +getUrl(routes.ChallengeController.challenge
+                                       (p.id.toString()))
+                               +"\nto start your challenge!\n");
+                    */
+                    
+                    // let's make the response the same so that people don't
+                    // just figure out whether they've correctly answered
+                    // the puzzle by keep doing post
+                    String fake = UUID.randomUUID().toString();
+                    Logger.debug("Participant "+p.id+" already passed stage 0;"
+                                 +" return a fake uuid for this submission: "
+                                 +fake);
+                    return ok (response+"submission-id: "+fake+"\n");
+                }
+            }, httpExecutionContext.current()).exceptionally(t -> {
+                    Logger.error("Failed to register participant: "
+                                 +part.email, t);
+                    return fatal ();
+                });
     }
 
 
@@ -584,10 +615,11 @@ public class ChallengeController extends Controller {
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
 
-                        repo.submission(part, Json.stringify(Json.toJson(data)))
+                        repo.submission(part, data)
                             .thenApplyAsync(sub -> {
                                     Logger.debug(part.id+": submission "+sub.id
-                                                 +" created!");
+                                                 +" created for stage "
+                                                 +stage+"!");
                                     return sub;
                                 }, httpExecutionContext.current())
                             .exceptionally(t -> {
@@ -602,7 +634,6 @@ public class ChallengeController extends Controller {
                         switch (stage) {
                         case 1:
                             // advance to next stage
-                            repo.nextStage(part);
                             passed = true;
                             break;
                             
@@ -611,38 +642,45 @@ public class ChallengeController extends Controller {
                             Logger.debug(part.id+": "+resp.success
                                          +": "+resp.message);
                             if (resp.success > 0) {
-                                repo.incrementStage(part); // advance to next stage
+                                // advance to next stage
+                                repo.incrementStage(part); 
                                 return ttt(resp.message);
                             }
                             return ok(resp.message);
                             
                         case 4:
                             passed = checkC4 (part, data);
-                            if (passed) {
-                                repo.nextStage(part); // advance to next stage
-                            }
                             break;
                             
                         case 5:
                             passed = checkC5 (part, data);
-                            if (passed) {
-                                repo.nextStage(part); // advance to next stage
-                            }
                             break;
                             
                         case 6:
                             passed = checkC6 (part, data);
-                            if (passed) {
-                                repo.nextStage(part);
-                            }
                             break;
                         }
 
-                        if (!passed) {
+                        if (passed) {
+                            try {
+                                Optional<Participant> opt = repo.nextStage(part)
+                                    .toCompletableFuture().get();
+                                if (!opt.isPresent())
+                                    return redirect
+                                        (routes.ChallengeController.welcome());
+                            }
+                            catch (Exception ex) {
+                                Logger.error("Can't increment next stage for "
+                                             +part.id, ex);
+                                return redirect
+                                    (routes.ChallengeController.welcome());
+                            }
+                        }
+                        else {
                             flash ("error", "One or more of your answers "
                                    +"are in correct; please try again!");
                         }
-
+                        
                         return redirect
                             (routes.ChallengeController.challenge(id));
                     }

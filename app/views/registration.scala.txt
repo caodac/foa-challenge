@@ -1,5 +1,5 @@
 @(part: models.Participant, url: String)
-Hi @part.firstname,
+Hi @part.name,
 
 Congratulations! You are now registered for the Translator challenge. This is your unique challenge url:
 

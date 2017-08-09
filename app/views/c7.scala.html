@@ -51,6 +51,7 @@
                     using double quotes.
                 </p>
 
+                @if(part.stage<7){
                 <form class="form-inline"
                     method="POST"
                     enctype="multipart/form-data"
@@ -63,8 +64,7 @@
                     <br><input class="btn btn-@if(part.stage > 7) {success} else {primary}"
                 type="submit" @if(part.stage > 7) {disabled}/>
                 </form>
-
-
+                }
             </div>
         </div>
     </div>
