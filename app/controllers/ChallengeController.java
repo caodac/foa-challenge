@@ -419,12 +419,19 @@ public class ChallengeController extends Controller {
                 if (Precision.round(probSum,2) != 0.95) {
                     flash ("error", "Your calculation failed. The "
                            +"sum of knowledge scores is not minimal.");
-                    return redirect (routes.ChallengeController.challenge(id));
                 }
-
-                repo.nextStage(part);
-                return redirect(routes.ChallengeController.challenge(id));
-
+                else {
+                    try {
+                        repo.nextStage(part)
+                            .toCompletableFuture().get();
+                    }
+                    catch (Exception ex) {
+                        Logger.error
+                            ("Can't advance to next stage for "+part.id, ex);
+                        flash ("error", "Internal server error; unable "
+                               +"to advance to next stage!");
+                    }
+                }
             } catch (FileNotFoundException e) {
                 flash ("error", "Error opening CSV file. <code>"
                        + e.getMessage() + "</code>");
@@ -438,7 +445,8 @@ public class ChallengeController extends Controller {
             return redirect(routes.ChallengeController.challenge(id));
         }, httpExecutionContext.current()).exceptionally(t -> {
             Logger.error("Failed to fetch participant: " + id, t);
-            return badRequest("Something bad happened such as a malformed CSV.\n");
+            flash("error", "Something bad happened such as a malformed CSV.\n");
+            return redirect(routes.ChallengeController.challenge(id));
         });
     }
 
@@ -480,9 +488,31 @@ public class ChallengeController extends Controller {
     }
 
     boolean checkC4 (Participant part, Map<String, String[]> data) {
+        Configuration c4 = config.getConfig("challenge").getConfig("c4");
+        for (Map.Entry<String, String[]> me : data.entrySet()) {
+            String[] val = me.getValue();
+            if (val.length > 0 && !val[0].equals("")) {
+                Logger.info(me.getKey()+": "+val[0]);
+                try {
+                    int iv = Integer.parseInt(val[0]);
+                    Integer ans = c4.getInt(me.getKey());
+                    if (ans != null && !ans.equals(iv)) {
+                        Logger.debug
+                            (part.id+": incorrect "+me.getKey()+"="+iv);
+                        return false;
+                    }
+                }
+                catch (NumberFormatException ex) {
+                    Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
+                    return false;
+                }
+            }
+        }
+        
         Logger.debug(part.id+": passes C4!");
         return true;
     }
+    
     boolean checkC6 (Participant part, Map<String, String[]> data) {
         String[] target = data.get("target");
         String[] pathway = data.get("pathway");

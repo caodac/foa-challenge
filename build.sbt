@@ -1,7 +1,10 @@
 name := """foa-challenge"""
 organization := "ncats"
 
-version := "1.0-SNAPSHOT"
+val buildDate = (new java.text.SimpleDateFormat("yyyyMMdd"))
+  .format(new java.util.Date())
+
+version := "%s".format(buildDate)
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava, PlayEbean)
 
