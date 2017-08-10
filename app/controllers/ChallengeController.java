@@ -702,8 +702,6 @@ public class ChallengeController extends Controller {
                             catch (Exception ex) {
                                 Logger.error("Can't increment next stage for "
                                              +part.id, ex);
-                                return redirect
-                                    (routes.ChallengeController.welcome());
                             }
                         }
                         else {

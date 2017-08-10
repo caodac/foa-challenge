@@ -1,5 +1,6 @@
 package repository;
 
+import javax.persistence.*;
 import io.ebean.Ebean;
 import io.ebean.EbeanServer;
 import io.ebean.Transaction;
@@ -43,57 +44,60 @@ public class Repository {
 
     public CompletionStage<UUID> insert (Participant part) {
         return supplyAsync(() -> {
-                Transaction tx = ebeanServer.beginTransaction();
-                try {
+                try (Transaction tx = ebeanServer.beginTransaction()) {
                     part.created = System.currentTimeMillis();
                     part.save();
                     tx.commit();
                     return part.id;
-                }
-                finally {
-                    tx.end();
                 }
             }, executionContext);
     }
 
     public CompletionStage<UUID> insert (Submission submission) {
         return supplyAsync(() -> {
-                Transaction tx = ebeanServer.beginTransaction();
-                try {
+                try (Transaction tx = ebeanServer.beginTransaction()) {
                     submission.save();
                     tx.commit();
                     return submission.id;
                 }
-                finally {
-                    tx.end();
-                }
             }, executionContext);
     }
 
+    public Participant _insertIfAbsent (Participant part) {
+        try (Transaction tx = ebeanServer.beginTransaction()) {
+            Participant p = Participant.finder.query()
+                .where().eq("email", part.email).findUnique();
+            if (p == null) {
+                part.created = System.currentTimeMillis();
+                p = part;
+                part.save();
+                tx.commit();
+            }
+            else if (part.name != null
+                     && !part.name.equals(p.name)) {
+                p.updated = System.currentTimeMillis();
+                p.name = part.name;
+                p.update();
+                tx.commit();
+            }
+            return p;
+        }
+    }
+    
     public CompletionStage<Participant> insertIfAbsent (Participant part) {
         return supplyAsync(() -> {
-                Transaction tx = ebeanServer.beginTransaction();
-                try {
-                    Participant p = Participant.finder.query()
-                        .where().eq("email", part.email).findUnique();
-                    if (p == null) {
-                        part.created = System.currentTimeMillis();
-                        p = part;
-                        part.save();
-                        tx.commit();
+                int tries = 0;
+                do {
+                    try {
+                        return _insertIfAbsent (part);
                     }
-                    else if (part.name != null
-                             && !part.name.equals(p.name)) {
-                        p.updated = System.currentTimeMillis();
-                        p.name = part.name;
-                        p.update();
-                        tx.commit();
+                    catch (RollbackException ex) {
+                        Logger.warn(ex.getMessage()+": retry "+tries);
                     }
-                    return p;
                 }
-                finally {
-                    tx.end();
-                }
+                while (++tries < 5);
+                
+                return null;
             }, executionContext);
     }
     
@@ -112,23 +116,31 @@ public class Repository {
 
     public Optional<Participant> incrementStage (Participant part) {
         Optional<Participant> ret = Optional.empty();
-        Transaction tx = ebeanServer.beginTransaction();
-        try {
+        try (Transaction tx = ebeanServer.beginTransaction()) {
+            tx.setBatchMode(false);
             part.stage = part.stage+1;
             part.updated = System.currentTimeMillis();
             part.update();
-            tx.commit();
             ret = Optional.of(part);
-        }
-        finally {
-            tx.end();
+            tx.commit();            
         }
         return ret;
     }
 
     public CompletionStage<Optional<Participant>> nextStage (Participant part) {
         return supplyAsync (() -> {
-                return incrementStage(part);
+                int tries = 0;
+                do {
+                    try {
+                        return incrementStage(part);
+                    }
+                    catch (RollbackException ex) {
+                        Logger.warn(ex.getMessage()+": retry "+tries);
+                    }
+                }
+                while (++tries < 5);
+                
+                return Optional.empty();
             }, executionContext);
     }
 
@@ -147,48 +159,73 @@ public class Repository {
         (Participant part, JsonNode json) {
         return submission (part, Json.stringify(json));
     }
+
+    public Submission _submission (Participant part, String payload) {
+        try (Transaction tx = ebeanServer.beginTransaction()) {
+            tx.setBatchMode(false);
+            Submission sub = new Submission (part);
+            try {
+                sub.payload = payload.getBytes("utf8");
+                sub.psize = sub.payload.length;
+            }
+            catch (Exception ex) {
+                Logger.error("Can't convert byte payload: "+payload, ex);
+            }
+            sub.save();
+            tx.commit();
+            return sub;
+        }
+    }
     
     public CompletionStage<Submission> submission
         (Participant part, String payload) {
         return supplyAsync (() -> {
-                Transaction tx = ebeanServer.beginTransaction();
-                try {
-                    Submission sub = new Submission (part);
-                    sub.payload = payload.getBytes("utf8");
-                    sub.psize = sub.payload.length;
-                    sub.save();
-                    tx.commit();
-                    return sub;
+                int tries = 0;
+                do {
+                    try {
+                        return _submission (part, payload);
+                    }
+                    catch (RollbackException ex) {
+                        Logger.warn(ex.getMessage()+": retry "+tries);
+                    }
                 }
-                catch (Exception ex) {
-                    Logger.error("Failed to persist submission", ex);
-                    return null;
-                }
-                finally {
-                    tx.end();
-                }
+                while (++tries < 5);
+                return null;
             }, executionContext);
+    }
+
+    public Submission _submission (Participant part, File payload) {
+        try (Transaction tx = ebeanServer.beginTransaction()) {
+            tx.setBatchMode(false);
+            Submission sub = new Submission (part);
+            try {
+                sub.payload = Files.readAllBytes(payload.toPath());
+                sub.psize = sub.payload.length;
+            }
+            catch (Exception ex) {
+                Logger.error("Can't ready payload: "+payload, ex);
+            }
+            sub.save();
+            tx.commit();
+            return sub;
+        }
     }
 
     public CompletionStage<Submission> submission
         (Participant part, File payload) {
         return supplyAsync (() -> {
-                Transaction tx = ebeanServer.beginTransaction();                
-                try {
-                    Submission sub = new Submission (part);
-                    sub.payload = Files.readAllBytes(payload.toPath());
-                    sub.psize = sub.payload.length;
-                    sub.save();
-                    tx.commit();
-                    return sub;
+                int tries = 0;
+                do {
+                    try {
+                        return _submission (part, payload);
+                    }
+                    catch (RollbackException ex) {
+                        Logger.warn(ex.getMessage()+": retry "+tries);
+                    }
                 }
-                catch (Exception ex) {
-                    Logger.error("Failed to read file "+payload, ex);
-                    return null;
-                }
-                finally {
-                    tx.end();
-                }
+                while (++tries < 5);
+                
+                return null;
             }, executionContext);
     }
 
