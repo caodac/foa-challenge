@@ -77,7 +77,7 @@ public class ChallengeControllerDev extends ChallengeController {
             return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
                     if (part.stage < getMaxStage ()) {
                         try {
-                            Optional<Participant> ret = repo.nextStage(part)
+                            repo.nextStage(part)
                                 .toCompletableFuture().get();
                         }
                         catch (Exception ex) {
@@ -141,9 +141,9 @@ public class ChallengeControllerDev extends ChallengeController {
                             return redirect(controllers.routes
                                             .ChallengeController.challenge(id));
                         try {
-                            Optional<Participant> opt = repo.nextStage(part)
+                            Participant p = repo.nextStage(part)
                                 .toCompletableFuture().get();
-                            if (!opt.isPresent())
+                            if (p == null)
                                 return redirect
                                     (controllers.routes
                                      .ChallengeController.welcome());

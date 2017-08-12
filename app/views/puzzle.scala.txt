@@ -33,4 +33,4 @@ In order for the peptide to act synergistically (i.e., achieve target recognitio
 63: ^^^NOT A VALID SEQUENCE^^^
 64: PLIVICI
 
-Can you identify the required 18-residue sequence for target recongition in this peptide?
+Can you identify the required 18-residue sequence for target recognition in this peptide?

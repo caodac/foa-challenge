@@ -14,6 +14,7 @@ public class Submission extends Model {
         new Finder<>(Submission.class);
 
     @Id public UUID id;
+    @Version public Long version;
     public Long created;
     
     @Column(nullable=false)

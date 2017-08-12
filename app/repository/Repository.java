@@ -41,7 +41,7 @@ public class Repository {
         this.ebeanServer = Ebean.getServer(ebeanConfig.defaultServer());
         this.executionContext = executionContext;
     }
-
+    
     public CompletionStage<UUID> insert (Participant part) {
         return supplyAsync(() -> {
                 try (Transaction tx = ebeanServer.beginTransaction()) {
@@ -64,7 +64,7 @@ public class Repository {
     }
 
     public Participant _insertIfAbsent (Participant part) {
-        try (Transaction tx = ebeanServer.beginTransaction()) {
+        try (Transaction tx = part.db().beginTransaction()) {
             Participant p = Participant.finder.query()
                 .where().eq("email", part.email).findUnique();
             if (p == null) {
@@ -114,20 +114,18 @@ public class Repository {
             }, executionContext);
     }
 
-    public Optional<Participant> incrementStage (Participant part) {
-        Optional<Participant> ret = Optional.empty();
-        try (Transaction tx = ebeanServer.beginTransaction()) {
+    public Participant incrementStage (Participant part) {
+        try (Transaction tx = part.db().beginTransaction()) {
             tx.setBatchMode(false);
             part.stage = part.stage+1;
             part.updated = System.currentTimeMillis();
             part.update();
-            ret = Optional.of(part);
-            tx.commit();            
+            tx.commit();
+            return part;
         }
-        return ret;
     }
 
-    public CompletionStage<Optional<Participant>> nextStage (Participant part) {
+    public CompletionStage<Participant> nextStage (Participant part) {
         return supplyAsync (() -> {
                 int tries = 0;
                 do {
@@ -140,7 +138,7 @@ public class Repository {
                 }
                 while (++tries < 5);
                 
-                return Optional.empty();
+                return null;
             }, executionContext);
     }
 
@@ -160,64 +158,77 @@ public class Repository {
         return submission (part, Json.stringify(json));
     }
 
-    public Submission _submission (Participant part, String payload) {
-        try (Transaction tx = ebeanServer.beginTransaction()) {
-            tx.setBatchMode(false);
-            Submission sub = new Submission (part);
-            try {
-                sub.payload = payload.getBytes("utf8");
-                sub.psize = sub.payload.length;
-            }
-            catch (Exception ex) {
-                Logger.error("Can't convert byte payload: "+payload, ex);
-            }
-            sub.save();
-            tx.commit();
-            return sub;
+    Submission createSubmission (Participant part, String payload) {
+        Submission sub = new Submission (part);
+        try {
+            sub.payload = payload.getBytes("utf8");
+            sub.psize = sub.payload.length;
         }
+        catch (Exception ex) {
+            Logger.error("Can't convert byte payload: "+payload, ex);
+        }
+        return sub;
+    }
+    
+    public int _submissionCount (Participant part) {
+        try (Transaction tx = part.db().beginTransaction()) {
+            tx.setReadOnly(true);
+            return Submission.finder.query().where()
+                .eq("participant", part).findCount();
+        }
+    }
+
+    public CompletionStage<Integer> submissionCount (Participant part) {
+        return supplyAsync (() -> {
+                return _submissionCount (part);
+            }, executionContext);
     }
     
     public CompletionStage<Submission> submission
         (Participant part, String payload) {
         return supplyAsync (() -> {
                 int tries = 0;
+                Submission sub = createSubmission (part, payload);
                 do {
-                    try {
-                        return _submission (part, payload);
+                    try (Transaction tx = part.db().beginTransaction()) {
+                        tx.setBatchMode(false);
+                        sub.save();
+                        tx.commit();
+                        return sub;
                     }
                     catch (RollbackException ex) {
                         Logger.warn(ex.getMessage()+": retry "+tries);
                     }
                 }
                 while (++tries < 5);
+                
                 return null;
             }, executionContext);
     }
 
-    public Submission _submission (Participant part, File payload) {
-        try (Transaction tx = ebeanServer.beginTransaction()) {
-            tx.setBatchMode(false);
-            Submission sub = new Submission (part);
-            try {
-                sub.payload = Files.readAllBytes(payload.toPath());
-                sub.psize = sub.payload.length;
-            }
-            catch (Exception ex) {
-                Logger.error("Can't ready payload: "+payload, ex);
-            }
-            sub.save();
-            tx.commit();
-            return sub;
+    Submission createSubmission (Participant part, File payload) {
+        Submission sub = new Submission (part);
+        try {
+            sub.payload = Files.readAllBytes(payload.toPath());
+            sub.psize = sub.payload.length;
         }
-    }
+        catch (Exception ex) {
+            Logger.error("Can't ready payload: "+payload, ex);
+        }
+        return sub;
+    }   
 
     public CompletionStage<Submission> submission
         (Participant part, File payload) {
         return supplyAsync (() -> {
                 int tries = 0;
+                Submission sub = createSubmission (part, payload);
                 do {
-                    try {
-                        return _submission (part, payload);
+                    try (Transaction tx = part.db().beginTransaction()) {
+                        tx.setBatchMode(false);
+                        sub.save();
+                        tx.commit();
+                        return sub;
                     }
                     catch (RollbackException ex) {
                         Logger.warn(ex.getMessage()+": retry "+tries);

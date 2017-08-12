@@ -48,6 +48,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
@@ -113,7 +114,7 @@ public class ChallengeController extends Controller {
         try {
             UUID uuid = UUID.fromString(id);
             return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
-                    if (part != null)
+                    if (part != null && part.stage > 0)
                         return ok (challenge.render(part, part.stage));
                     return ok (welcome.render());
                 }, httpExecutionContext.current()).exceptionally(t -> {
@@ -276,7 +277,7 @@ public class ChallengeController extends Controller {
         String response = "Thank you for your submission. If your submission "
             +"is correct, you will receive an email confirmation.\n"
             +Json.prettyPrint(json)+"\n";
-        
+
         return repo.insertIfAbsent(part).thenApplyAsync(p -> {
                 int stage = p.stage.intValue();
                 if (stage == 0) {
@@ -631,6 +632,63 @@ public class ChallengeController extends Controller {
         return topics;
     }
 
+    Result advance (Participant part, Map<String, String[]> data) {
+        // check the answer
+        boolean passed = false;
+        switch (part.stage) {
+        case 1:
+            // advance to next stage
+            passed = true;
+            break;
+            
+        case 2:
+            ChallengeResponse resp = checkC2 (part, data);
+            Logger.debug(part.id+": "+resp.success
+                         +": "+resp.message);
+            if (resp.success > 0) {
+                // advance to next stage
+                repo.incrementStage(part); 
+                return ttt(resp.message);
+            }
+            return ok(resp.message);
+            
+        case 4:
+            passed = checkC4 (part, data);
+            break;
+            
+        case 5:
+            passed = checkC5 (part, data);
+            break;
+            
+        case 6:
+            passed = checkC6 (part, data);
+            break;
+        }
+        
+        if (passed) {
+            try {
+                int stage = part.stage;
+                repo.nextStage(part).toCompletableFuture().join();
+                if (stage > 1) {
+                    flash ("success", "Congratulation on completing "
+                           +"challenge "+stage+"!");
+                }
+            }
+            catch (Exception ex) {
+                Logger.error("Can't advance to next stage for "+part.id, ex);
+                flash ("error", "An internal server error has occur; "
+                       +"please try again!");
+            }
+        }
+        else {
+            flash ("error", "One or more of your answers "
+                   +"are in correct; please try again!");
+        }
+        
+        return redirect
+            (routes.ChallengeController.challenge(part.id.toString()));
+    }
+
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
     public CompletionStage<Result> submit (final String id,
                                            final Integer stage) {
@@ -645,72 +703,16 @@ public class ChallengeController extends Controller {
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
 
-                        repo.submission(part, data)
-                            .thenApplyAsync(sub -> {
-                                    Logger.debug(part.id+": submission "+sub.id
-                                                 +" created for stage "
-                                                 +stage+"!");
-                                    return sub;
-                                }, httpExecutionContext.current())
-                            .exceptionally(t -> {
-                                    Logger.error
-                                        ("Failed to insert submission for "
-                                         +part.id);
-                                    return null;
-                                });
-                        
-                        // check the answer
-                        boolean passed = false;
-                        switch (stage) {
-                        case 1:
-                            // advance to next stage
-                            passed = true;
-                            break;
-                            
-                        case 2:
-                            ChallengeResponse resp = checkC2 (part, data);
-                            Logger.debug(part.id+": "+resp.success
-                                         +": "+resp.message);
-                            if (resp.success > 0) {
-                                // advance to next stage
-                                repo.incrementStage(part); 
-                                return ttt(resp.message);
-                            }
-                            return ok(resp.message);
-                            
-                        case 4:
-                            passed = checkC4 (part, data);
-                            break;
-                            
-                        case 5:
-                            passed = checkC5 (part, data);
-                            break;
-                            
-                        case 6:
-                            passed = checkC6 (part, data);
-                            break;
+                        try {
+                            repo.submission(part, data)
+                                .toCompletableFuture().join();
                         }
-
-                        if (passed) {
-                            try {
-                                Optional<Participant> opt = repo.nextStage(part)
-                                    .toCompletableFuture().get();
-                                if (!opt.isPresent())
-                                    return redirect
-                                        (routes.ChallengeController.welcome());
-                            }
-                            catch (Exception ex) {
-                                Logger.error("Can't increment next stage for "
-                                             +part.id, ex);
-                            }
-                        }
-                        else {
-                            flash ("error", "One or more of your answers "
-                                   +"are in correct; please try again!");
+                        catch (Exception ex) {
+                            Logger.error("Can't create submission for "
+                                         +part.id, ex);
                         }
                         
-                        return redirect
-                            (routes.ChallengeController.challenge(id));
+                        return advance (part, data);
                     }
                     
                     return redirect (routes.ChallengeController.welcome());

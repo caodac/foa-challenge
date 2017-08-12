@@ -28,6 +28,15 @@
           <strong style="font-size:larger">@flash.get("error")</strong>
         </span>
       </div>        
+      } else if (flash.containsKey("success")) {
+      <div class="alert alert-success" role="alert">
+        <button type="button" class="close" data-dismiss="alert"
+                aria-label="Close"><span aria-hidden="true">&times;</span>
+        </button>
+        <span class="text-align:center">
+          <strong style="font-size:larger">@flash.get("success")</strong>
+        </span>
+      </div>              
       }
       @content
     </div>

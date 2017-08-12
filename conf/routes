@@ -20,7 +20,7 @@ GET	/:id/:stage/foa	controllers.ChallengeController.foa(id: String, stage: Int)
 # should really figure out how to properly handle CSRF filter
 #
 + nocsrf
-POST	/:id	controllers.ChallengeController.submit(id: String, stage: Int)
+POST	/:id/:stage	controllers.ChallengeController.submit(id: String, stage: Int)
 
 POST /c3/handler controllers.ChallengeController.handleC3Request()
 + nocsrf
