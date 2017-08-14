@@ -78,6 +78,10 @@ public class ChallengeController extends Controller {
     @Inject protected Environment env;
     @Inject protected WSClient ws;
     @Inject protected MailerClient mailer;
+
+    public ChallengeController () {
+        
+    }
     
     protected CompletionStage<Result> badRequestAsync (String mesg) {
         return supplyAsync (() -> {
@@ -207,6 +211,8 @@ public class ChallengeController extends Controller {
     public Result puzzle () {
         //return ok (puzzle.render());
         String url = getUrl (routes.ChallengeController.register());
+        response().setHeader
+            ("Looking-for-Clues","PLEASE FOCUS ON THE PROBLEM");
         return ok(views.txt.puzzle.render(url));
     }
 
@@ -281,15 +287,18 @@ public class ChallengeController extends Controller {
         return repo.insertIfAbsent(part).thenApplyAsync(p -> {
                 int stage = p.stage.intValue();
                 if (stage == 0) {
-                    try {
-                        Submission sub = repo.submission
-                            (p, json).toCompletableFuture().get();
+                    try {                        
                         if (correct) {
-                            repo.incrementStage(p);
+                            repo.nextStage(p).toCompletableFuture().join();
+                            
                             String mesgId = sendmail (p);
                             Logger.debug("Sending registration "+p.id+" to "
                                          +p.email+": "+mesgId);
                         }
+
+                        Submission sub = repo.submission
+                            (p, json).toCompletableFuture().join();
+                        
                         return ok (response+"submission-id: "+sub.id+"\n");
                     }
                     catch (Exception ex) {
@@ -633,6 +642,15 @@ public class ChallengeController extends Controller {
     }
 
     Result advance (Participant part, Map<String, String[]> data) {
+        Submission sub = null;
+        try {
+            sub = repo.submission(part, data)
+                .toCompletableFuture().join();
+        }
+        catch (Exception ex) {
+            Logger.error("Can't create submission for "+part.id, ex);
+        }
+        
         // check the answer
         boolean passed = false;
         switch (part.stage) {
@@ -673,10 +691,15 @@ public class ChallengeController extends Controller {
                     flash ("success", "Congratulation on completing "
                            +"challenge "+stage+"!");
                 }
+                
+                if (sub != null) {
+                    Logger.debug(part.id+" advance to next stage "
+                                 +"with submission "+sub.id);
+                }
             }
             catch (Exception ex) {
                 Logger.error("Can't advance to next stage for "+part.id, ex);
-                flash ("error", "An internal server error has occur; "
+                flash ("error", "An internal server error has occurred; "
                        +"please try again!");
             }
         }
@@ -703,14 +726,6 @@ public class ChallengeController extends Controller {
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
 
-                        try {
-                            repo.submission(part, data)
-                                .toCompletableFuture().join();
-                        }
-                        catch (Exception ex) {
-                            Logger.error("Can't create submission for "
-                                         +part.id, ex);
-                        }
                         
                         return advance (part, data);
                     }
