@@ -53,19 +53,20 @@
                  style="width:100px;margin-left:40px;" required>
           <br>
           <input type="text" class="form-control"
-                 name="symptom"
-                 placeholder="Symptom PMID"
-                 aria-describedby="symptom"
-                 style="width:100px;margin-left:60px;" required>
-          <br>
-          <input type="text" class="form-control"
                  name="cell"
-                 placeholder="Cell Line PMID"
+                 placeholder="Cell Type or Tissue PMID"
                  aria-describedby="cell"
-                 style="width:100px;margin-left:80px;margin-bottom:10px;"
+                 style="width:160px;margin-left:60px;"
                  required>
 
           <br>
+            <input type="text" class="form-control"
+            name="symptom"
+            placeholder="Symptom PMID"
+            aria-describedby="symptom"
+            style="width:100px;margin-left:80px;margin-bottom:10px;"
+            required>
+            <br>
           <span class="label label-@if(part.stage>6){success}else{primary}"
                 style="margin-left:100px">Asthma</span>
         </div>

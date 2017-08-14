@@ -1,11 +1,11 @@
 @(url: String)
 Thank you for your interest in the NCATS Translator challenge. In order to qualify for the challenge, we ask that you first solve a hypothetical problem below. Please POST your answer along with contact information (i.e., email and name) to this address @url. (We leave it up to you to decide how you want to format your submission.) Note that you will only receive an email confirmation from us if you have successfully solved the problem. You may submit your answer as often as you'd like. While there are no limits to the rate of submissions, please keep in mind the delay in email response as you make your submissions. Best of luck!
 
-In a far-distant future, bacteria of unknown origin threaten humanity with devastating pandemics never before seen. The bacteria are resistant to all known antibiotics. An NCATS scientist by the name of Lothar, with background in mathematics, discovers a new drug modality that can stop the bacteria. This new modality, through an ingenious encoding technique, strategically modifies key amino acid residues of a beta-defensin peptide so as to allow the drug to work synergistically with the body's immune system. There are 18 modified residues in the following peptide.
+Beta-defensins are antimicrobial peptides that help prevent infections. An NCATS scientist by the name of Lothar, with background in mathematics, has discovered how the strategic modification of key amino acid residues of a beta-defensin peptide allow the peptide to target specific bacteria. To demonstrate this, he modified 18 residues to produce the following peptide.
 
 ICVIDLAVSISFNCLIRLPVVEGGIEDPVTCLKAGAICHIVFCPRRYKQIGVCGLPGTKCCKKP
 
-In order for the peptide to act synergistically (i.e., achieve target recognition), these modified 18 residues must be transcribed in a specific order. In the moment that leads to his discovery, Dr. Lothar proclaims "all roads must lead to Rome" and proceeds to transcribe the peptide into possible sequences for target recognition.
+In order for the peptide to work, the modified residues (a ‘recognition sequence’) must be introduced into specific positions in the peptide. In the moment that leads to his discovery, Dr. Lothar proclaims "all roads must lead to Rome" and proceeds to resolve how the peptide presents different possible recognition sequences, beginning from different peptide residues.
 
  1: I
  2: CI
@@ -33,4 +33,4 @@ In order for the peptide to act synergistically (i.e., achieve target recognitio
 63: ^^^NOT A VALID SEQUENCE^^^
 64: PLIVICI
 
-Can you identify the required 18-residue sequence for target recognition in this peptide?
+Can you identify the recognition sequence of 18 residues necessary for target recognition in this peptide?
