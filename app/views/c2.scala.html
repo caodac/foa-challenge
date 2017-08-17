@@ -13,22 +13,24 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-        <p>The Biomedical Data Translator consumes a wide variety of data from many sources. The goal of this challenge is to give the participant familiarity with bringing new resource APIs online.</p>
-      <p>
-        SHALL WE PLAY A GAME?
-      </p>
-      <form class="form-inline"  method="POST"
+      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. The goal of this challenge is to give the participant familiarity with bringing new resource APIs online.</p>
+        <p><a href="https://oeis.org/A006577">Collatz sequences</a> start from a natural number and have the following pattern: </p>
+        <ol><li>If <em>n</em> is even, divide <em>n</em> by 2.</li><li>If <em>n</em> is odd, multiply <em>n</em> by 3 and add 1.</li></ol>
+        <p><b>Collatz siblings</b> are numbers that share the same path length to 1, such as the numbers 3 and 20. Provide an API that produces Collatz siblings.</p>
+
+        <p>Follow the specification in this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>example</a> Swagger API definition
+        file.</p>
+
+        <form class="form-inline"  method="POST"
             action='@controllers.routes.ChallengeController.submit(part.id.toString, 2)'>
         <input type="hidden" name="uuid" value="@part.id">
-        Please provide the URI to your game agent's API:
+        Provide the URI to your resource's API here:
         <div class="input-group">
           <input type="text" class="form-control"
                  name="API-URI"
                  placeholder="API endpoint"
                  aria-describedby="API-URI">
         </div>
-        <br>For an example Swagger API definition file for a game agent,
-        please see this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>example</a>.
 
         @if(part.stage == 2) {
         <br><input class="btn btn-@if(part.stage>2){success}else{primary}"

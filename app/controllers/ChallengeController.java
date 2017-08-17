@@ -70,8 +70,7 @@ public class ChallengeController extends Controller {
     @Inject protected views.html.Challenge challenge;
     @Inject protected views.html.Welcome welcome;
     @Inject protected views.html.Puzzle puzzle;
-    @Inject protected views.html.TTT ttt;
-    
+
     @Inject protected Repository repo;
     @Inject protected HttpExecutionContext httpExecutionContext;
     @Inject protected Configuration config;
@@ -214,10 +213,6 @@ public class ChallengeController extends Controller {
         response().setHeader
             ("Looking-for-Clues","PLEASE FOCUS ON THE PROBLEM");
         return ok(views.txt.puzzle.render(url));
-    }
-
-    public Result ttt (String message) {
-        return ok (ttt.render(message));
     }
 
     Result fatal () {
@@ -664,12 +659,11 @@ public class ChallengeController extends Controller {
             Logger.debug(part.id+": "+resp.success
                          +": "+resp.message);
             if (resp.success > 0) {
-                // advance to next stage
-                repo.incrementStage(part); 
-                return ttt(resp.message);
+                passed = true;
+                break;
+            } else {
+                return ok(resp.message);
             }
-            return ok(resp.message);
-            
         case 4:
             passed = checkC4 (part, data);
             break;
@@ -705,7 +699,7 @@ public class ChallengeController extends Controller {
         }
         else {
             flash ("error", "One or more of your answers "
-                   +"are in correct; please try again!");
+                   +"are incorrect; please try again!");
         }
         
         return redirect
