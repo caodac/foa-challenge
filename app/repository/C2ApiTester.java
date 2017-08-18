@@ -107,7 +107,7 @@ public class C2ApiTester {
             int[][] testList = {{144, 148, 149}, {112, 116, 117}, {49, 50, 51}, {28, 29, 30}};
             int testIndex = (int)(id.getLeastSignificantBits() & 0xFF)%4;
             int[] test = testList[testIndex];
-            System.out.println("random test: "+testIndex+":test:"+test);
+            //System.out.println("random test: "+testIndex+":test:"+test);
             ObjectNode json = Json.newObject();
             ArrayNode ss = json.putArray("siblingSet");
             for (int n: test)
@@ -118,7 +118,7 @@ public class C2ApiTester {
                 answer.remove(new Integer(ss.get(i).intValue()));
             }
 
-            System.err.print(ss.toString()+"\n"+answer.toString()+"\n");
+            //System.err.print(ss.toString()+"\n"+answer.toString()+"\n");
             JsonNode node = requestJson(ws, API + tttpath, json);
             if (!node.isArray()) return new ChallengeResponse(0,
                     "Something is amiss here ... I was expecting to get an array of integers back in my response.\n\n"+API+tttpath+"   "+json.toString()+"\n\n"+node.toString());
