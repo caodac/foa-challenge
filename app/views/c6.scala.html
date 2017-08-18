@@ -13,32 +13,33 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      We do not understand how all approved drugs
-      work, but for a majority of them we can construct a clinical outcome
-      pathway that explains the molecular pathophysiology of their action.
-      A clinical outcome pathway can be thought of as the efficacy
-      equivalent of an adverse outcome pathway; it explains how a
-      molecular initiating event precipitates a series of key events which
-      manifest as a clinical outcome, beginning with (1) a molecular
-      initiating event physically interacting with (2) a biological target,
-      which affects (3) a biological pathway or series of pathways that are
-      relevant to (4) a particular cell type or tissue that manifest as (5)
-      a clinical phenotype or endpoint which together reflect (6) a disease
-      or condition. 
-      
-      <br><br>For the drug-disease pair listed below, construct a
-      clinical outcome pathway that best explains how the drug effects its
-      action.  Please enter the PMID of a paper which is tagged with the relevant
-      MeSH term for each of the categories below in order to construct the COP.
-      The same paper may be used for multiple categories.
-
+      <div class="well well-lg">
+        We do not understand how all approved drugs
+        work, but for a majority of them we can construct a clinical outcome
+        pathway that explains the molecular pathophysiology of their action.
+        A clinical outcome pathway can be thought of as the efficacy
+        equivalent of an adverse outcome pathway; it explains how a
+        molecular initiating event precipitates a series of key events which
+        manifest as a clinical outcome, beginning with (1) a molecular
+        initiating event physically interacting with (2) a biological target,
+        which affects (3) a biological pathway or series of pathways that are
+        relevant to (4) a particular cell type or tissue that manifest as (5)
+        a clinical phenotype or endpoint which together reflect (6) a disease
+        or condition. 
+        
+        <br><br>For the drug-disease pair listed below, construct a
+        clinical outcome pathway that best explains how the drug effects its
+        action.  Please enter the PMID of a paper which is tagged with the relevant
+        MeSH term for each of the categories below in order to construct the COP.
+          The same paper may be used for multiple categories.
+      </div>
       <form id="c5-form" class="form-inline"
       method="POST"
       action="@controllers.routes.ChallengeController.submit(part.id.toString, 6)">
         <div class="input-group">
           <br>
           <span class="label label-@if(part.stage>6){success}else{primary}">Imatinib</span>
-          
+
           <br>
           <input type="text" class="form-control"
                  name="target"

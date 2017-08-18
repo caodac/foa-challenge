@@ -41,6 +41,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
+
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -79,9 +80,9 @@ public class ChallengeController extends Controller {
     @Inject protected MailerClient mailer;
 
     public ChallengeController () {
-        
+
     }
-    
+
     protected CompletionStage<Result> badRequestAsync (String mesg) {
         return supplyAsync (() -> {
                 return badRequest (mesg);
@@ -138,12 +139,12 @@ public class ChallengeController extends Controller {
         }
         return null;
     }
-    
+
     protected File download (int stage, String name) {
         String file = config.getConfig("challenge.c"+stage).getString(name);
         if (file != null)
             return env.getFile(file);
-        
+
         return null;
     }
 
@@ -246,7 +247,7 @@ public class ChallengeController extends Controller {
         if (json == null)
             return badRequestAsync ("Please make sure your Content-Type "
                                     +"header is set to application/json!\n");
-        
+
         if (!json.has("email"))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
@@ -269,11 +270,11 @@ public class ChallengeController extends Controller {
         if (!json.has("answer"))
             return badRequestAsync ("Bad JSON message; "
                                     +"please use the format:\n"+JSON_FORMAT);
-            
+
         final String answer = json.get("answer").asText().trim();
         final String key = config.getString("challenge.puzzle.key");
         final boolean correct = key.equalsIgnoreCase(answer);
-        
+
         Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
         String response = "Thank you for your submission. If your submission "
             +"is correct, you will receive an email confirmation.\n"
@@ -282,10 +283,10 @@ public class ChallengeController extends Controller {
         return repo.insertIfAbsent(part).thenApplyAsync(p -> {
                 int stage = p.stage.intValue();
                 if (stage == 0) {
-                    try {                        
+                    try {
                         if (correct) {
                             repo.nextStage(p).toCompletableFuture().join();
-                            
+
                             String mesgId = sendmail (p);
                             Logger.debug("Sending registration "+p.id+" to "
                                          +p.email+": "+mesgId);
@@ -293,7 +294,7 @@ public class ChallengeController extends Controller {
 
                         Submission sub = repo.submission
                             (p, json).toCompletableFuture().join();
-                        
+
                         return ok (response+"submission-id: "+sub.id+"\n");
                     }
                     catch (Exception ex) {
@@ -308,7 +309,7 @@ public class ChallengeController extends Controller {
                                        (p.id.toString()))
                                +"\nto start your challenge!\n");
                     */
-                    
+
                     // let's make the response the same so that people don't
                     // just figure out whether they've correctly answered
                     // the puzzle by keep doing post
@@ -376,7 +377,7 @@ public class ChallengeController extends Controller {
                                          +part.id);
                             return null;
                         });
-                
+
                 if (!magicIsCorrect)
                     return badRequest("Sorry, invalid magic value "
                                       +"specified. Try again.\n");
@@ -403,7 +404,7 @@ public class ChallengeController extends Controller {
                 flash ("error", "No association file was provided");
                 return redirect(routes.ChallengeController.challenge(id));
             }
-            
+
             File csvFile = filePart.getFile();
             try {
                 repo.submission(part, csvFile).thenApplyAsync(sub -> {
@@ -415,7 +416,7 @@ public class ChallengeController extends Controller {
                                          +part.id+" "+csvFile);
                             return null;
                         });
-                
+
                 List<String> genes = new ArrayList<String>();
                 List<String> diseases = new ArrayList<String>();
                 double probSum = 0.0;
@@ -438,13 +439,13 @@ public class ChallengeController extends Controller {
                            +"Incorrect number of genes.");
                     return redirect (routes.ChallengeController.challenge(id));
                 }
-                
+
                 if (diseaseSet.size() != 500) {
                     flash ("error", "Your calculation failed. Incorrect "
                            +"number of diseases.");
                     return redirect (routes.ChallengeController.challenge(id));
                 }
-                
+
                 // check that we got the maximal probability
                 if (Precision.round(probSum,2) != 0.95) {
                     flash ("error", "Your calculation failed. The "
@@ -471,7 +472,7 @@ public class ChallengeController extends Controller {
                        + e.getMessage() + "</code>");
                 Logger.error("Error opening CSV file", e);
             }
-            
+
             return redirect(routes.ChallengeController.challenge(id));
         }, httpExecutionContext.current()).exceptionally(t -> {
             Logger.error("Failed to fetch participant: " + id, t);
@@ -538,12 +539,13 @@ public class ChallengeController extends Controller {
                 }
             }
         }
-        
+
         Logger.debug(part.id+": passes C4!");
         return true;
     }
-    
-    boolean checkC6 (Participant part, Map<String, String[]> data) {
+    Map<String,String> checkC6 (Participant part, Map<String, String[]> data) {
+        Map results = new HashMap<String,String>();
+
         String[] target = data.get("target");
         String[] pathway = data.get("pathway");
         String[] symptom = data.get("symptom");
@@ -558,23 +560,47 @@ public class ChallengeController extends Controller {
         if(target != null) {
             HashMap<String,String> mTarget = getTopics(target[0]);
             bTarget=!Collections.disjoint(mTarget.keySet(),answerMap.get(2));
+            if(bTarget)
+            {
+                mTarget.keySet().retainAll(answerMap.get(2));
+                results.put("target",mTarget.get(mTarget.keySet().iterator().next()));
+                Logger.info("target");
+            }
 
         }
         if(pathway != null){
             HashMap<String,String> mPathway = getTopics(pathway[0]);
             bPathway = (!Collections.disjoint(mPathway.keySet(),answerMap.get(3)));
-        }
-        if(symptom!=null) {
-            HashMap<String,String> mSymptom = getTopics(symptom[0]);
-            bSymptom=(!Collections.disjoint(mSymptom.keySet(),answerMap.get(4)));
+            if(bPathway)
+            {
+                mPathway.keySet().retainAll(answerMap.get(3));
+                results.put("pathway",mPathway.get(mPathway.keySet().iterator().next()));
+            }
         }
         if(cell != null){
             HashMap<String,String> mCell = getTopics(cell[0]);
-            bCell = (!Collections.disjoint(mCell.keySet(),answerMap.get(5)));
+            bCell = (!Collections.disjoint(mCell.keySet(),answerMap.get(4)));
+            if(bCell)
+            {
+                mCell.keySet().retainAll(answerMap.get(4));
+                results.put("cell",mCell.get(mCell.keySet().iterator().next()));
+            }
+
         }
+        if(symptom!=null) {
+            HashMap<String,String> mSymptom = getTopics(symptom[0]);
+            bSymptom=(!Collections.disjoint(mSymptom.keySet(),answerMap.get(5)));
+            if(bSymptom)
+            {
+                mSymptom.keySet().retainAll(answerMap.get(5));
+                results.put("symptom",mSymptom.get(mSymptom.keySet().iterator().next()));
+            }
+        }
+
 //        if(bTarget)
 //        {
-//            Logger.info("target");
+//
+//            results.put("target","")
 //        }
 //        if(bPathway)
 //        {
@@ -589,7 +615,7 @@ public class ChallengeController extends Controller {
 //        {
 //            Logger.info("cell");
 //        }
-        return bTarget && bPathway && bSymptom && bCell;
+        return results;
     }
     ChallengeResponse checkC2 (Participant part, Map<String, String[]> data) {
         String[] apiurl = data.get("API-URI");
@@ -605,8 +631,8 @@ public class ChallengeController extends Controller {
         answerMap.put(1, Arrays.asList("D000068877"));
         answerMap.put(2,Arrays.asList("D019009"));
         answerMap.put(3,Arrays.asList("D015398","D020935"));
-        answerMap.put(4,Arrays.asList("D000402","D012130","D004418","D016535"));
-        answerMap.put(5,Arrays.asList("D008407"));
+        answerMap.put(4,Arrays.asList("D008407"));
+        answerMap.put(5,Arrays.asList("D000402","D012130","D004418","D016535"));
         answerMap.put(6,Arrays.asList("D001249"));
 
         return answerMap;
@@ -670,7 +696,7 @@ public class ChallengeController extends Controller {
         catch (Exception ex) {
             Logger.error("Can't create submission for "+part.id, ex);
         }
-        
+
         // check the answer
         boolean passed = false;
         switch (part.stage) {
@@ -678,7 +704,7 @@ public class ChallengeController extends Controller {
             // advance to next stage
             passed = true;
             break;
-            
+
         case 2:
             ChallengeResponse resp = checkC2 (part, data);
             Logger.debug(part.id+": "+resp.success
@@ -692,16 +718,16 @@ public class ChallengeController extends Controller {
         case 4:
             passed = checkC4 (part, data);
             break;
-            
+
         case 5:
             passed = checkC5 (part, data);
             break;
-            
+
         case 6:
-            passed = checkC6 (part, data);
+            passed = checkC6 (part, data).size()==4;
             break;
         }
-        
+
         if (passed) {
             try {
                 int stage = part.stage;
@@ -710,7 +736,7 @@ public class ChallengeController extends Controller {
                     flash ("success", "Congratulations on completing "
                            +"challenge "+stage+"!");
                 }
-                
+
                 if (sub != null) {
                     Logger.debug(part.id+" advance to next stage "
                                  +"with submission "+sub.id);
@@ -726,7 +752,7 @@ public class ChallengeController extends Controller {
             flash ("error", "One or more of your answers "
                    +"are incorrect; please try again!");
         }
-        
+
         return redirect
             (routes.ChallengeController.challenge(part.id.toString()));
     }
@@ -741,11 +767,11 @@ public class ChallengeController extends Controller {
                         if (!stage.equals(part.stage))
                             return redirect(routes.ChallengeController
                                             .challenge(id));
-                        
+
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
 
-                        
+
                         return advance (part, data);
                     }
                     
@@ -786,5 +812,5 @@ public class ChallengeController extends Controller {
             Logger.warn("Not a valid challenge id: "+id);
             return async (redirect (routes.ChallengeController.welcome()));
         }
-    }       
+    }
 }
