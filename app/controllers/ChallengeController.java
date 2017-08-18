@@ -573,7 +573,7 @@ public class ChallengeController extends Controller {
             return new ChallengeResponse(0, "No API-URI parameter specified!");
         }
 
-        return C2ApiTester.main(ws, apiurl[0]);
+        return C2ApiTester.main(ws, part.id, apiurl[0]);
     }
     HashMap<Integer,List<String>> createAnswerMap() {
         HashMap<Integer, List<String>> answerMap = new HashMap();
@@ -682,7 +682,7 @@ public class ChallengeController extends Controller {
                 int stage = part.stage;
                 repo.nextStage(part).toCompletableFuture().join();
                 if (stage > 1) {
-                    flash ("success", "Congratulation on completing "
+                    flash ("success", "Congratulations on completing "
                            +"challenge "+stage+"!");
                 }
                 
