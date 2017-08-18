@@ -357,7 +357,7 @@ public class ChallengeController extends Controller {
                     }
             } catch (Exception e) {;}
             boolean magicIsCorrect = decodedEmail.trim().equals(email.trim()) || myMagic.equals(magic);
-            System.err.println(magicIsCorrect+":"+magic+":"+myMagic+":"+email+":"+decodedEmail);
+            //System.err.println(magicIsCorrect+":"+magic+":"+myMagic+":"+email+":"+decodedEmail);
 
             if (part == null)
                 return badRequest("This email address doesn't correspond"
