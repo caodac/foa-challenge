@@ -13,7 +13,7 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. The goal of this challenge is to give the participant familiarity with bringing new resource APIs online.</p>
+      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. To help standardize the data being consumed, we have specified a <em>Knowledge Beacon</em> application programming interface (API) that can be found <a href="https://github.com/NCATS-Tangerine/translator-knowledge-beacon/">here</a>. The goal of this challenge is to give the participant familiarity with bringing new APIs online.</p>
         <p>As you have seen, Lothar Collatz's conjecture produces <a href="https://oeis.org/A006577">sequences</a> that start from a natural number and have the following pattern: </p>
         <ol><li>If <em>n</em> is even, divide <em>n</em> by 2.</li><li>If <em>n</em> is odd, multiply <em>n</em> by 3 and add 1.</li></ol>
         <p><b>Collatz siblings</b> are numbers that share the same path length to 1, such as the numbers 3 and 20. Provide an API that produces Collatz siblings.</p>
@@ -24,7 +24,7 @@
         <form class="form-inline"  method="POST"
             action='@controllers.routes.ChallengeController.submit(part.id.toString, 2)'>
         <input type="hidden" name="uuid" value="@part.id">
-        Provide the URI to your resource's API here:
+        Provide the URI to your API here:
         <div class="input-group">
           <input type="text" class="form-control"
                  name="API-URI"
