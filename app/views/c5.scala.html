@@ -20,7 +20,7 @@
       translation often requires sufficient knowledge of basic graph theory
       and algorithms. The goal of this challenge, therefore, is to evaluate
       the participant's ability to work with graph data effectively.
-      Please use the following <a href='@{controllers.routes.ChallengeController.stage(part.id.toString,5) + "?action=download"}'>knowledge hypergraph</a>
+      Please use the following hypothetical <a href='@{controllers.routes.ChallengeController.stage(part.id.toString,5) + "?action=download"}'>knowledge hypergraph</a>
       to answer
       all questions in this challenge. The participant is free to use any
       available resources to answer the questions.
@@ -31,7 +31,7 @@
         <div class="panel panel-@if(part.stage>5){success}else{primary}"
              style="margin-top:20px">
           <div class="panel-heading">
-            <h3 class="panel-title"><b>1.</b> Graph Metrics</h3>
+            <h3 class="panel-title"><b>1.</b> Metrics</h3>
           </div>
           <div class="panel-body">
             <div class="input-group input-answer">
@@ -54,27 +54,26 @@
         <div class="panel panel-@if(part.stage>5){success}else{primary}"
              style="margin-top:20px">
           <div class="panel-heading">
-            <h3 class="panel-title"><b>2.</b> Shortest Paths
+            <h3 class="panel-title"><b>2.</b> Paths
           </div>
           <div class="panel-body">
-            Number of shortest paths between nodes 123 and 456:
+            Length (node count) of graph diameter:
             <br>
             <div class="input-group input-answer">
               <input type="text" class="form-control"
-                     name="shortest-path-count"
-                     placeholder="Number of paths"
-                     aria-describedby="shortest-path-count" required>
+                     name="diameter-length"
+                     placeholder="Graph diameter"
+                     aria-describedby="diameter-length" required>
             </div>
             
-            <br><br>The length of the shortest path between nodes
-            7859 and 3245 (inclusive):
+            <br><br>Number of paths with length equal graph diameter:
             <br>
             <div class="input-group input-answer">
               <input type="text" class="form-control"
-                     name="shortest-path-length"
-                     placeholder="Path length"
+                     name="diameter-count"
+                     placeholder="Graph diameter count"
                      aria-describedby="shortest-path-length" required>
-            </div>          
+            </div>
           </div>
         </div>
         
@@ -98,46 +97,39 @@
           </div>
         </div>
         
-        <br>The next two questions are optional, but we highly encourage
-        the participant to answer them in order to get an appreciation of
-        their utility in the context of knowledge engineering, e.g., entity
-        resolution, equivalence relation, knowledge abstraction, etc.
+        <br>The next question is optional, but we highly encourage
+        the participant to answer it in order to get an appreciation of
+        its utility in the context of knowledge engineering, e.g., entity
+        resolution, equivalence relation, knowledge abstraction, etc. We
+        will take this question into consideration during the overall
+        evaluation.
         
-        <div class="panel panel-default" style="margin-top:20px">
+        <div class="panel panel-info" style="margin-top:20px">
           <div class="panel-heading">
-            <h3 class="panel-title"><b>4.</b> Maximal Cliques
+            <h3 class="panel-title"><b>4.</b> Maximum Clique
           </div>
           <div class="panel-body">
+            What is the size of the maxmimum clique that spans the
+            edge label <code>E514</code>?
+            <br>
             <div class="input-group input-answer">
-              <input type="text" class="form-control"
-                     name="clique-count"
-                     placeholder="Number of maximal cliques"
-                     aria-describedby="clique-count">
               <input type="text" class="form-control"
                      name="maxclique-size"
                      placeholder="Maximum clique size"
                      aria-describedby="maxclique-size">
-            </div>                  
-          </div>
-        </div>
-        
-        <div class="panel panel-default" style="margin-top:20px">
-          <div class="panel-heading">
-            <h3 class="panel-title"><b>5.</b> Matching Subgraphs
-          </div>
-          <div class="panel-body">
-            Consider the following subgraph, find all occurences of this
-            subgraph in the knowledge hypergraph.
+            </div>
+
+            <br><br>What are other edge labels that span this clique?
             <br>
             <div class="input-group input-answer">
               <input type="text" class="form-control"
-                     name="subgraph-count"
-                     placeholder="Number of subgraphs"
-                     aria-describedby="subgraph-count">
+                     name="maxclique-span"
+                     placeholder="Properties that span maximum clique"
+                     aria-describedby="maxclique-span">
             </div>
           </div>
         </div>
-
+        
         @if(part.stage==5){
         <input class="btn btn-@if(part.stage>5){success}else{primary}"
                type="submit" @if(part.stage>5){disabled}/>

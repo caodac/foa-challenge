@@ -331,12 +331,34 @@ public class ChallengeController extends Controller {
         String email = dynamicForm.get("email");
         String magic = dynamicForm.get("magic");
 
-        // magic is simply the base64 encoded email
-        String myMagic = Base64.getEncoder().encodeToString(email.getBytes());
-        boolean magicIsCorrect = magic.equals(myMagic);
-
         // does this email exist?
         return repo.fetchParticipant(email).thenApplyAsync(part -> {
+            // magic is simply the base64 encoded email
+            String myMagic = "";
+            try {
+                myMagic = Base64.getEncoder().encodeToString(email.getBytes());
+
+                // try deleting padding, which is actually optional under Bas64 spec and Java is too strict
+                if (!myMagic.equals(magic))
+                    myMagic = Base64.getEncoder().withoutPadding().encodeToString(email.getBytes());
+            } catch (Exception e) {;}
+
+            // multiple base64 encoded strings decode to same string, so we need to test reverse process as well
+            String decodedEmail = "";
+            try {
+                String padmagic = magic.substring(0,
+                        magic.indexOf('=') > 0 ? magic.indexOf('=') : magic.length());
+                for (int i=0; i<4; i++)
+                    if (!email.equals(decodedEmail)) {
+                        try {
+                            decodedEmail = new String(Base64.getDecoder().decode(padmagic));
+                        } catch (Exception e) {;}
+                        padmagic = padmagic + "=";
+                    }
+            } catch (Exception e) {;}
+            boolean magicIsCorrect = decodedEmail.trim().equals(email.trim()) || myMagic.equals(magic);
+            //System.err.println(magicIsCorrect+":"+magic+":"+myMagic+":"+email+":"+decodedEmail);
+
             if (part == null)
                 return badRequest("This email address doesn't correspond"
                                   +" to a valid participant.\n");
@@ -362,6 +384,9 @@ public class ChallengeController extends Controller {
                 return ok("Success.\n");
             }
         }, httpExecutionContext.current()).exceptionally(t -> {
+            if (email == null) {
+                return badRequest("Email address not specified.\n");
+            }
             return badRequest("This email address doesn't correspond "
                               +"to a valid participant.\n");
         });
@@ -573,7 +598,7 @@ public class ChallengeController extends Controller {
             return new ChallengeResponse(0, "No API-URI parameter specified!");
         }
 
-        return C2ApiTester.main(ws, apiurl[0]);
+        return C2ApiTester.main(ws, part.id, apiurl[0]);
     }
     HashMap<Integer,List<String>> createAnswerMap() {
         HashMap<Integer, List<String>> answerMap = new HashMap();
@@ -682,7 +707,7 @@ public class ChallengeController extends Controller {
                 int stage = part.stage;
                 repo.nextStage(part).toCompletableFuture().join();
                 if (stage > 1) {
-                    flash ("success", "Congratulation on completing "
+                    flash ("success", "Congratulations on completing "
                            +"challenge "+stage+"!");
                 }
                 

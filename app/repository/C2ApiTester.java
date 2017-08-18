@@ -9,6 +9,8 @@ import play.libs.ws.WSClient;
 import play.libs.ws.WSRequest;
 import play.libs.ws.WSResponse;
 
+import java.util.ArrayList;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -36,7 +38,37 @@ public class C2ApiTester {
         return resp.asJson();
     }
 
-    static public ChallengeResponse main(WSClient ws, String API) {
+    static int getCollatzPathLength(int n) {
+        int i = 1;
+        while (n > 1) {
+            if (n % 2 == 0)
+                n = n / 2;
+            else
+                n = 3 * n + 1;
+            i = i + 1;
+        }
+        return i;
+    }
+
+    static ArrayList<Integer> getCollatzSiblings(int pLen) {
+        pLen = pLen - 1;
+        ArrayList<Integer> sibs = new ArrayList<>();
+        sibs.add(1);
+        while (pLen > 0) {
+            pLen = pLen - 1;
+            ArrayList<Integer> nSibs = new ArrayList<>();
+            for (int n : sibs) {
+                nSibs.add(n * 2);
+                if (n % 2 == 0 && (n - 1) % 3 == 0 && (n - 1) / 3 > 1)
+                    nSibs.add((n - 1) / 3);
+            }
+            sibs = nSibs;
+            //System.out.println(sibs.toString());
+        }
+        return sibs;
+    }
+
+    static public ChallengeResponse main(WSClient ws, UUID id, String API) {
         if (!API.startsWith("http"))
             return new ChallengeResponse(0,
                     "You can not be serious! Hypertext Transfer Protocol was not on the line! "+API+"\n");
@@ -72,15 +104,26 @@ public class C2ApiTester {
 
         // Test whether POST works on API
         try {
+            int[][] testList = {{144, 148, 149}, {112, 116, 117}, {49, 50, 51}, {28, 29, 30}};
+            int testIndex = (int)(id.getLeastSignificantBits() & 0xFF)%4;
+            int[] test = testList[testIndex];
+            //System.out.println("random test: "+testIndex+":test:"+test);
             ObjectNode json = Json.newObject();
             ArrayNode ss = json.putArray("siblingSet");
-            ss.add(5);
-            System.err.print(ss.toString()+"\n");
+            for (int n: test)
+                ss.add(n);
+            int pLen = getCollatzPathLength(test[0]);
+            ArrayList<Integer> answer = getCollatzSiblings(pLen);
+            for (int i=0; i<ss.size(); i++) {
+                answer.remove(new Integer(ss.get(i).intValue()));
+            }
+
+            //System.err.print(ss.toString()+"\n"+answer.toString()+"\n");
             JsonNode node = requestJson(ws, API + tttpath, json);
             if (!node.isArray()) return new ChallengeResponse(0,
                     "Something is amiss here ... I was expecting to get an array of integers back in my response.\n\n"+API+tttpath+"   "+json.toString()+"\n\n"+node.toString());
 
-            if (node.size() == 1 && node.get(0).asInt() == 32)
+            if (node.size() == answer.size() && answer.contains(node.get(0).asInt()) )
                 return new ChallengeResponse(1, "Checks out!");
             else return new ChallengeResponse(0,
                     "I don't think this is the correct response for that input.\n\n"+node.toString());

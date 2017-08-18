@@ -83,7 +83,7 @@ public class C5Solver {
         eprops.clear();
         edges = new int[nv][nv];
         next = new int[nv][nv];
-        Set<String> edgeLabels = new TreeSet<>();
+        Map<String, Integer> edgeLabels = new TreeMap<>();
         for (int i = 1; i <= ne; ++i) {
             line = br.readLine();
             if (line == null)
@@ -109,7 +109,8 @@ public class C5Solver {
                     if (bs == null)
                         eprops.put(toks[j], bs = new BitSet (ne+1));
                     bs.set(i);
-                    edgeLabels.add(toks[j]);
+                    Integer c = edgeLabels.get(toks[j]);
+                    edgeLabels.put(toks[j], c==null ? 1 : c+1);
                 }
                 edges[na][nb] = edges[nb][na] = i;
             }
@@ -154,56 +155,90 @@ public class C5Solver {
             System.out.println();
         }
         
-        BitSet cc = new BitSet ();
-        for (int i = 0; i < nv; ++i)
-            cc.set(find (i));
+        Map<Integer, Integer> cc = new TreeMap<>();
+        for (int i = 0; i < nv; ++i) {
+            int p = find (i);
+            Integer c = cc.get(p);
+            cc.put(p, c == null ? 1 : c+1);
+        }
 
         System.out.println
             ("Graph loaded; "+nv+" nodes with "+vprops.size()+" properties and "
              +ne+" edges with "+eprops.size()+" properties!");
-        System.out.println("Graph has "+cc.cardinality()
-                           +" connected componented!");
+        int maxd = 0;
+        for (int i = 0; i < nv; ++i)
+            for (int j = 0; j < nv; ++j)
+                if (i != j) {
+                    int c  = 0;
+                    for (BitSet bs : eprops.values()) {
+                        if (bs.get(edges[i][j]))
+                            ++c;
+                    }
+                    if (c > maxd)
+                        maxd = c;
+                }
+
+        System.out.println("Node with maximum degree: "+maxd);
+        System.out.println("Graph has "+cc.size()
+                           +" connected componented; max component size is "
+                           +cc.values().stream().mapToInt(x->x)
+                           .max().getAsInt());
+
         System.out.println("Maximal cliques:");
 
+        Set<String> maxLabels = new TreeSet<>();
+        int max = 0;
+        for (Map.Entry<String, Integer> me : edgeLabels.entrySet()) {
+            if (me.getValue() > max) {
+                maxLabels.clear();
+                max = me.getValue();
+                maxLabels.add(me.getKey());
+            }
+            else if (me.getValue() == max) {
+                maxLabels.add(me.getKey());
+            }
+        }
+        Logger.debug("Max labels: "+max+" => "+ maxLabels);
+        
         bronKerbosch (c -> {
-                    Set<String> props = null;
-                    for (int i = c.nextSetBit(0);
-                         i >= 0; i = c.nextSetBit(i+1)) {
-                        for (int j = c.nextSetBit(0);
-                             j >= 0; j = c.nextSetBit(j+1)) {
-                            if (i != j) {
-                                Set<String> set = new TreeSet<>();
-                                for (Map.Entry<String, BitSet> me:
-                                         eprops.entrySet()) {
-                                    if (me.getValue().get(edges[i][j]))
-                                        set.add(me.getKey());
-                                }
-                                
-                                if (props == null) {
-                                    props = set;
-                                }
-                                else {
-                                    props.retainAll(set);
-                                }
-                                /*
-                                  Logger.debug(nodes[i]+","+nodes[j]+": "
-                                  +set+"\n => "+props);
-                                */
+                Set<String> props = null;
+                for (int i = c.nextSetBit(0);
+                     i >= 0; i = c.nextSetBit(i+1)) {
+                    for (int j = c.nextSetBit(0);
+                         j >= 0; j = c.nextSetBit(j+1)) {
+                        if (i != j) {
+                            Set<String> set = new TreeSet<>();
+                            for (Map.Entry<String, BitSet> me:
+                                     eprops.entrySet()) {
+                                if (me.getValue().get(edges[i][j]))
+                                    set.add(me.getKey());
                             }
+                            
+                            if (props == null) {
+                                props = set;
+                            }
+                            else {
+                                props.retainAll(set);
+                            }
+                            /*
+                              Logger.debug(nodes[i]+","+nodes[j]+": "
+                              +set+"\n => "+props);
+                            */
                         }
                     }
-                    
-                    // a clique is valid only if there is one or more properties
-                    // that span the clique!
-                    if (props != null && !props.isEmpty()) {
-                        System.out.println("Clique found: "+c.cardinality());
-                        for (int i = c.nextSetBit(0);
-                             i >= 0; i = c.nextSetBit(i+1)) {                   
-                            System.out.println(nodes[i]);
-                        }
-                        System.out.println(props);
+                }
+                
+                // a clique is valid only if there is one or more properties
+                // that span the clique!
+                if (props != null && !props.isEmpty()) {
+                    System.out.println("Clique found: "+c.cardinality()+" =>");
+                    for (int i = c.nextSetBit(0);
+                         i >= 0; i = c.nextSetBit(i+1)) {                   
+                        System.out.print(" "+nodes[i]);
                     }
-            }, "E004", "E001");
+                    System.out.println(" => "+props);
+                }
+            } /*,"E514"*/ /*maxLabels.toArray(new String[0])*/ );
     }
 
     void bronKerbosch (Consumer<BitSet> visitor,  String... labels) {
