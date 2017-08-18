@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  title: Translator Knowledge Source API
+  title: Translator Challenge 2 API
   version: 3.14159265359...
   contact:
     name: I AM A ROBOT
@@ -8,15 +8,22 @@ info:
     url: 'https://ncats.nih.gov/translator'
     email: gc@ncats.io
   description: >
-    This is the Biomedical Data Translator **Knowledge Source** web service
-    application programming interface (API). Inspired by
+    This is the Biomedical Data Translator Challenge 2 application programming
+    interface (API). 
+
+
+    Inspired by the **Knowledge Source** web service specification at:
     https://github.com/NCATS-Tangerine/translator-knowledge-beacon/
+
 
     Import this file into http://editor.swagger.io/ and 'Generate Server' for
     your favorite web container. Be sure to enable scripts for this website to
     work properly. The resulting web container only contains stubs for API calls
     --- you will need to author code within those stubs for the API to properly
-    function. Browse to http://{host}{basePath}/ui/ to test your API yourself.
+    function. 
+
+
+    Browse to http://{host}{basePath}/ui/ to test your API yourself.
   license:
     name: MIT License
     url: 'http://opensource.org/licenses/MIT'
@@ -27,19 +34,15 @@ schemes:
 produces:
   - application/json
 tags:
-  - name: games
-    description: List of games that I know how to play
-  - name: tictactoe
-    description: Play a round of tic-tac-toe
+  - name: types
+    description: List of math functions that this API provides
+  - name: functions
+    description: Execute desired math function
 paths:
-  /games:
+  /types:
     get:
-      description: >
-        'GAMES' REFERS TO MODELS, SIMULATIONS AND GAMES WHICH HAVE TACTICAL AND
-        STRATEGIC APPLICATIONS.
       tags:
-        - games
-      operationId: listGames
+        - types
       responses:
         '200':
           schema:
@@ -50,52 +53,56 @@ paths:
                 id:
                   type: string
                   description: |
-                    the type 
+                    the function name 
+                desc:
+                  type: string
+                  description: |
+                    a description of the function 
                 idmap:
                   type: string
                   description: The URL to execute the API call on the id
           description: |
-            Successful response with types and API endpoint
+            Successful response with list of functions and their API endpoint
           examples:
             application/json:
-              - id: TIC-TAC-TOE
-                idmap: /games/tictactoe
-  /games/tictactoe:
+              - id: collatzSiblings
+                desc: Return missing Collatz siblings
+                idmap: /function/collatzSiblings
+  /functions/collatzSiblings:
     post:
-      summary: play a round at tic-tac-toe
-      description: MAKE A MOVE
+      summary: Return missing Collatz siblings
+      description: >-
+        Return the set of numbers that share the same Collatz sequence length as
+        the input numbers.
       tags:
-        - tictactoe
-      operationId: ticTacToe
+        - functions
       consumes:
+        - application/json
+      produces:
         - application/json
       parameters:
         - in: body
-          name: gameState
-          description: |
-            board: String describing state of board
-            player: Whether player is X or O
+          name: siblingSet
+          description: A set of numbers sharing the same Collatz sequence length
           schema:
             type: object
             properties:
-              board:
-                type: string
-                example: OXXXOOX--
-              player:
-                type: string
-                example: O
+              siblingSet:
+                type: array
+                items:
+                  type: integer
+                example:
+                  - 3
+                  - 20
       responses:
         '200':
           schema:
-            type: object
-            properties:
-              makeMark:
-                type: string
-              makeMarkAt:
-                type: integer
+            type: array
+            items:
+              type: integer
           description: |
-            Successful response with place to make mark
+            The set of remaining Collatz siblings
           examples:
             application/json:
-              makeMark: O
-              makeMarkAt: 9
+              - 21
+              - 128
