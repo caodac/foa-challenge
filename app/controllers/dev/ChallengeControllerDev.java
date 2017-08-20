@@ -75,7 +75,7 @@ public class ChallengeControllerDev extends ChallengeController {
         try {
             UUID uuid = UUID.fromString(id);
             return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
-                    if (part.stage < getMaxStage ()) {
+                    if (part.stage < app.getMaxStage()) {
                         try {
                             repo.nextStage(part)
                                 .toCompletableFuture().get();

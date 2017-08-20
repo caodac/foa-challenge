@@ -13,7 +13,6 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      <div class="well well-lg">
         We do not understand how all approved drugs
         work, but for a majority of them we can construct a clinical outcome
         pathway that explains the molecular pathophysiology of their action.
@@ -31,42 +30,43 @@
         clinical outcome pathway that best explains how the drug effects its
         action.  Please enter the PMID of a paper which is tagged with the relevant
         MeSH term for each of the categories below in order to construct the COP.
-          The same paper may be used for multiple categories.
-      </div>
-      <form id="c5-form" class="form-inline"
-      method="POST"
-      action="@controllers.routes.ChallengeController.submit(part.id.toString, 6)">
+        The same paper may be used for multiple categories.
+      <form id="c6-form" class="form-inline"
+            method="POST"
+            action="@controllers.routes.ChallengeController.submit(part.id.toString, 6)">
         <div class="input-group">
           <br>
           <span class="label label-@if(part.stage>6){success}else{primary}">Imatinib</span>
 
           <br>
           <input type="text" class="form-control"
-                 name="target"
+                 name="c6-target"
                  placeholder="Target PMID"
-                 aria-describedby="target"
-                 style="width:100px;margin-left:20px;" required>
+                 aria-describedby="c6-target"
+                 style="width:160px;margin-left:20px;"
+                 @if(session.containsKey("c6-target")){value='@session.get("c6-target")' readonly}else{required}>
           <br>
           <input type="text" class="form-control"
-                 name="pathway"
+                 name="c6-pathway"
                  placeholder="Pathway PMID"
-                 aria-describedby="pathway"
-                 style="width:100px;margin-left:40px;" required>
+                 aria-describedby="c6-pathway"
+                 style="width:160px;margin-left:40px;"
+                 @if(session.containsKey("c6-pathway")){value='@session.get("c6-pathway")' readonly}else{required}>
           <br>
           <input type="text" class="form-control"
-                 name="cell"
+                 name="c6-cell"
                  placeholder="Cell Type or Tissue PMID"
-                 aria-describedby="cell"
+                 aria-describedby="c6-cell"
                  style="width:160px;margin-left:60px;"
-                 required>
+                 @if(session.containsKey("c6-cell")){value='@session.get("c6-cell")' readonly}else{required}>
 
           <br>
             <input type="text" class="form-control"
-            name="symptom"
-            placeholder="Symptom PMID"
-            aria-describedby="symptom"
-            style="width:100px;margin-left:80px;margin-bottom:10px;"
-            required>
+                   name="c6-symptom"
+                   placeholder="Symptom PMID"
+                   aria-describedby="c6-symptom"
+                   style="width:160px;margin-left:80px;margin-bottom:10px;"
+                   @if(session.containsKey("c6-symptom")){value='@session.get("c6-symptom")' readonly}else{required}>
             <br>
           <span class="label label-@if(part.stage>6){success}else{primary}"
                 style="margin-left:100px">Asthma</span>
