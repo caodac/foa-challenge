@@ -38,15 +38,18 @@
               <input type="text" class="form-control"
                      name="node-size"
                      placeholder="Number of nodes"
-                     aria-describedby="node-size" required>
+                     aria-describedby="node-size"
+                     @if(session.containsKey("node-size")){value='@session.get("node-size")' readonly}else{required}>
               <input type="text" class="form-control"
                      name="edge-size"
                      placeholder="Number of edges"
-                     aria-describedby="edge-size" required>
+                     aria-describedby="edge-size"
+                     @if(session.containsKey("edge-size")){value='@session.get("edge-size")' readonly}else{required}>
               <input type="text" class="form-control"
                      name="max-degree"
                      placeholder="Maximum degree"
-                     aria-describedby="max-degree" required> 
+                     aria-describedby="max-degree"
+                     @if(session.containsKey("max-degree")){value='@session.get("max-degree")' readonly}else{required}> 
             </div>          
           </div>
         </div>
@@ -63,7 +66,8 @@
               <input type="text" class="form-control"
                      name="diameter-length"
                      placeholder="Graph diameter"
-                     aria-describedby="diameter-length" required>
+                     aria-describedby="diameter-length"
+                     @if(session.containsKey("diameter-length")){value='@session.get("diameter-length")' readonly}else{required}>
             </div>
             
             <br><br>Number of paths with length equal graph diameter:
@@ -72,7 +76,8 @@
               <input type="text" class="form-control"
                      name="diameter-count"
                      placeholder="Graph diameter count"
-                     aria-describedby="shortest-path-length" required>
+                     aria-describedby="shortest-path-length"
+                     @if(session.containsKey("diameter-count")){value='@session.get("diameter-count")' readonly}else{required}>
             </div>
           </div>
         </div>
@@ -87,12 +92,13 @@
               <input type="text" class="form-control"
                      name="connected-component-count"
                      placeholder="Number of connected components"
-                     aria-describedby="connected-component-count" required>
+                     aria-describedby="connected-component-count"
+                     @if(session.containsKey("connected-component-count")){value='@session.get("connected-component-count")' readonly}else{required}>
               <input type="text" class="form-control"
                      name="largest-connected-component-size"
                      placeholder="Largest component size"
                      aria-describedby="largest-connected-component-size" 
-                     required>
+                     @if(session.containsKey("largest-connected-component-size")){value='@session.get("largest-connected-component-size")' readonly}else{required}>
             </div>          
           </div>
         </div>
@@ -116,7 +122,8 @@
               <input type="text" class="form-control"
                      name="maxclique-size"
                      placeholder="Maximum clique size"
-                     aria-describedby="maxclique-size">
+                     aria-describedby="maxclique-size"
+                     @if(session.containsKey("maxclique-size")){value='@session.get("maxclique-size")' readonly}>
             </div>
 
             <br><br>What are other edge labels that span this clique?
@@ -125,14 +132,15 @@
               <input type="text" class="form-control"
                      name="maxclique-span"
                      placeholder="Properties that span maximum clique"
-                     aria-describedby="maxclique-span">
+                     aria-describedby="maxclique-span"
+                     @if(session.containsKey("maxclique-span")){value='@session.get("maxclique-span")' readonly}>
             </div>
           </div>
         </div>
         
-        @if(part.stage==5){
+        @if(part.stage==5 || !session.containsKey("maxclique-size") || !session.containsKey("maxclique-span")){
         <input class="btn btn-@if(part.stage>5){success}else{primary}"
-               type="submit" @if(part.stage>5){disabled}/>
+               type="submit"/>
         }
       </form>
     </div>

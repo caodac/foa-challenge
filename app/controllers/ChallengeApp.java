@@ -56,7 +56,9 @@ public class ChallengeApp {
     
     public int getMaxStage () { return maxStage; }
 
-    public boolean checkC5 (Participant part, Map<String, String[]> data) {
+    public ChallengeResponse checkC5 (Participant part,
+                                      Map<String, String[]> data) {
+        ChallengeResponse resp = new ChallengeResponse ();
         Configuration conf = config.getConfig("challenge").getConfig("c5");
         Configuration optional = conf.getConfig("optional");
         
@@ -79,22 +81,31 @@ public class ChallengeApp {
                              +me.getKey()+"="+iv+" optional="+opt);
                         
                         if (!opt)
-                            return false;
+                            return resp;
+                    }
+                    else if (ans != null) {
+                        resp.variables.put(me.getKey(), ans.toString());
                     }
                 }
                 catch (NumberFormatException ex) {
                     Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
-                    return false;
+                    return resp;
                 }
             }
         }
-        Logger.debug(part.id+": passes C5!");
         
-        return true;
+        Logger.debug(part.id+": passes C5!");
+        resp.success = resp.variables.size();
+        resp.message = null;
+        
+        return resp;
     }
 
-    public boolean checkC4 (Participant part, Map<String, String[]> data) {
+    public ChallengeResponse checkC4 (Participant part,
+                                      Map<String, String[]> data) {
+        ChallengeResponse resp = new ChallengeResponse ();
         Configuration c4 = config.getConfig("challenge").getConfig("c4");
+        
         for (Map.Entry<String, String[]> me : data.entrySet()) {
             String[] val = me.getValue();
             if (val.length > 0 && !val[0].equals("")) {
@@ -105,77 +116,105 @@ public class ChallengeApp {
                     if (ans != null && !ans.equals(iv)) {
                         Logger.debug
                             (part.id+": incorrect "+me.getKey()+"="+iv);
-                        return false;
+                        return resp;
                     }
+                    else if (ans != null)
+                        resp.variables.put(me.getKey(), ans.toString());
                 }
                 catch (NumberFormatException ex) {
                     Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
-                    return false;
+                    return resp;
                 }
             }
         }
 
+        resp.success = resp.variables.size();
+        resp.message = null;
         Logger.debug(part.id+": passes C4!");
-        return true;
+        
+        return resp;
+    }
+
+    String matchTopic (String category, String... meshIds) {
+        List<Configuration> c6 = config.getConfigList
+            ("challenge.c6."+category, null);
+        if (c6 == null)
+            throw new IllegalArgumentException
+                ("Unrecognized category: \""+category+"\"");
+        
+        for (Configuration conf : c6) {
+            String id = conf.getString("id");
+            String topic = conf.getString("topic");
+            for (String s : meshIds) {
+                if (s.equalsIgnoreCase(id) || s.equalsIgnoreCase(topic))
+                    return topic;
+            }
+        }
+        
+        return null;
     }
     
-    public Map<String, String> checkC6 (Participant part,
-                                        Map<String, String[]> data) {
-        Map results = new HashMap<String,String>();
+    public ChallengeResponse checkC6 (Participant part,
+                                      Map<String, String[]> data) {
+        ChallengeResponse response = new ChallengeResponse ();
 
         String[] target = data.get("c6-target");
         String[] pathway = data.get("c6-pathway");
         String[] symptom = data.get("c6-symptom");
         String[] cell = data.get("c6-cell");
         Logger.info("Checking c6");
-        HashMap<Integer,List<String>> answerMap = createAnswerMap();
-        boolean bTarget = false;
-        boolean bPathway = false;
-        boolean bSymptom = false;
-        boolean bCell = false;
 
         if (target != null) {
-            HashMap<String,String> mTarget = getTopics (target[0]);
-            bTarget=!Collections.disjoint(mTarget.keySet(),answerMap.get(2));
-            if(bTarget) {
-                mTarget.keySet().retainAll(answerMap.get(2));
-                results.put("c6-target",
-                            mTarget.get(mTarget.keySet().iterator().next()));
-                Logger.info("target");
+            String topic = matchTopic ("target", target);
+            if (topic == null) {
+                HashMap<String,String> mTarget = getTopics (target[0]);
+                topic = matchTopic ("target",
+                                    mTarget.keySet().toArray(new String[0]));
             }
+
+            if (topic != null)
+                response.variables.put("c6-target", topic);
         }
         
         if (pathway != null) {
-            HashMap<String,String> mPathway = getTopics(pathway[0]);
-            bPathway = (!Collections.disjoint(mPathway.keySet(),answerMap.get(3)));
-            if(bPathway) {
-                mPathway.keySet().retainAll(answerMap.get(3));
-                results.put("c6-pathway",
-                            mPathway.get(mPathway.keySet().iterator().next()));
+            String topic = matchTopic ("pathway", pathway);
+            if (topic == null) {
+                HashMap<String, String> mPathway = getTopics(pathway[0]);
+                topic = matchTopic ("pathway",
+                                    mPathway.keySet().toArray(new String[0]));
             }
+
+            if (topic != null)
+                response.variables.put("c6-pathway", topic);
         }
         
         if (cell != null) {
-            HashMap<String,String> mCell = getTopics(cell[0]);
-            bCell = (!Collections.disjoint(mCell.keySet(),answerMap.get(4)));
-            if(bCell) {
-                mCell.keySet().retainAll(answerMap.get(4));
-                results.put("c6-cell",
-                            mCell.get(mCell.keySet().iterator().next()));
+            String topic = matchTopic ("cell", cell);
+            if (topic == null) {
+                HashMap<String,String> mCell = getTopics(cell[0]);
+                topic = matchTopic ("cell",
+                                    mCell.keySet().toArray(new String[0]));
             }
+
+            if (topic != null)
+                response.variables.put("c6-cell", topic);
         }
         
         if (symptom != null) {
-            HashMap<String,String> mSymptom = getTopics(symptom[0]);
-            bSymptom=(!Collections.disjoint(mSymptom.keySet(),answerMap.get(5)));
-            if (bSymptom) {
-                mSymptom.keySet().retainAll(answerMap.get(5));
-                results.put("c6-symptom",
-                            mSymptom.get(mSymptom.keySet().iterator().next()));
+            String topic = matchTopic ("symptom", symptom);
+            if (topic == null) {
+                HashMap<String,String> mSymptom = getTopics(symptom[0]);
+                topic = matchTopic ("cell",
+                                    mSymptom.keySet().toArray(new String[0]));
             }
+
+            if (topic != null)
+                response.variables.put("c6-symptom", topic);
         }
 
-        return results;
+        response.success = response.variables.size();
+
+        return response;
     }
     
     public ChallengeResponse checkC2 (Participant part,

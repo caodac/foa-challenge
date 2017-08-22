@@ -125,8 +125,21 @@ public class C2ApiTester {
 
             if (node.size() == answer.size() && answer.contains(node.get(0).asInt()) )
                 return new ChallengeResponse(1, "Checks out!");
-            else return new ChallengeResponse(0,
-                    "I don't think this is the correct response for that input.\n\n"+node.toString());
+            else {
+                StringBuilder sb = new StringBuilder
+                    ("I don't think this is the correct response for that input:\n[");
+                int size = Math.min(10,node.size());
+                for (int i = 0; i < size; ++i) {
+                    sb.append(node.get(i).asInt());
+                    if (i+1 < size) sb.append(",");
+                }
+                
+                if (size < node.size())
+                    sb.append("...("+(node.size()-size)+" more)");
+                sb.append("]");
+                
+                return new ChallengeResponse(0, sb.toString());
+            }
         } catch (Exception e) {
             e.printStackTrace();
             return new ChallengeResponse(0,

@@ -51,15 +51,18 @@
               <input type="text" class="form-control"
                      name="drug-count"
                      placeholder="Number of drugs"
-                     aria-describedby="drug-count" required>
+                     aria-describedby="drug-count"
+                     @if(session.containsKey("drug-count")){value='@session.get("drug-count")' readonly}else{required}>
               <input type="text" class="form-control"
                      name="target-count"
                      placeholder="Number of targets"
-                     aria-describedby="target-count" required>
+                     aria-describedby="target-count"
+                     @if(session.containsKey("target-count")){value='@session.get("target-count")' readonly}else{required}>
               <input type="text" class="form-control"
                      name="disease-count"
                      placeholder="Number of diseases"
-                     aria-describedby="disease-count" required> 
+                     aria-describedby="disease-count"
+                     @if(session.containsKey("disease-count")){value='@session.get("disease-count")' readonly}else{required}> 
             </div>
 
             <br><br>How many of the targets belong to the following
@@ -70,11 +73,13 @@
               <input type="text" class="form-control"
                      name="kinase-count"
                      placeholder="Number of kinase targets"
-                     aria-describedby="kinase-count" required>
+                     aria-describedby="kinase-count"
+                     @if(session.containsKey("kinase-count")){value='@session.get("kinase-count")' readonly}else{required}>
               <input type="text" class="form-control"
                      name="gpcr-count"
                      placeholder="Number of GPCR targets"
-                     aria-describedby="gpcr-count" required>
+                     aria-describedby="gpcr-count"
+                     @if(session.containsKey("gpcr-count")){value='@session.get("gpcr-count")' readonly}else{required}>
             </div>
 
             <br><br>Next, select the target <b>Mast/stem cell growth factor
@@ -87,7 +92,8 @@
               <input type="text" class="form-control"
                      name="inhibitor-count"
                      placeholder="Number of inhibitors"
-                     aria-describedby="inhibitor-count" required>
+                     aria-describedby="inhibitor-count"
+                     @if(session.containsKey("inhibitor-count")){value='@session.get("inhibitor-count")' readonly}else{required}>
             </div>
           </div>
         </div>

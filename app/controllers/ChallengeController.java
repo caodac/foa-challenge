@@ -459,78 +459,61 @@ public class ChallengeController extends Controller {
         }
 
         // check the answer
-        boolean passed = false;
+        ChallengeResponse response = null;
         switch (part.stage) {
         case 1:
             // advance to next stage
-            passed = true;
+            response = new ChallengeResponse (1, null);
             break;
 
         case 2:
-            ChallengeResponse resp = app.checkC2(part, data);
-            Logger.debug(part.id+": "+resp.success+": "+resp.message);
-            if (resp.success > 0) {
-                passed = true;
-            }
-            else {
-                flash ("error", resp.message);
-                return redirect
-                    (routes.ChallengeController.challenge(part.id.toString()));
-            }
+            response = app.checkC2(part, data);
             break;
             
         case 4:
-            passed = app.checkC4(part, data);
+            response = app.checkC4(part, data);
             break;
 
         case 5:
-            passed = app.checkC5(part, data);
+            response = app.checkC5(part, data);
             break;
 
         case 6:
-            Map<String, String[]> params = new HashMap<>();
-            Map<String, String> ans = new HashMap<>();
-            for (Map.Entry<String, String[]> me : data.entrySet()) {
-                if (!session().containsKey(me.getKey()))
-                    params.put(me.getKey(), me.getValue());
-                else
-                    ans.put(me.getKey(), session().get(me.getKey()));
-            }
-            
-            ans.putAll(app.checkC6(part, params));
-            for (Map.Entry<String, String> me : ans.entrySet()) {
-                Logger.debug(me.getKey() +" => "+me.getValue());
-                session (me.getKey(), me.getValue());
-            }
-            passed = ans.size() == 4;
+            response = app.checkC6(part, data);
             break;
         }
 
-        if (passed) {
-            try {
-                int stage = part.stage;
-                repo.nextStage(part).toCompletableFuture().join();
-                if (stage > 1) {
-                    flash ("success", "Congratulations on completing "
-                           +"challenge "+stage+"!");
-                }
-
-                if (sub != null) {
-                    Logger.debug(part.id+" advance to next stage "
-                                 +"with submission "+sub.id);
-                }
-            }
-            catch (Exception ex) {
-                Logger.error("Can't advance to next stage for "+part.id, ex);
-                flash ("error", "An internal server error has occurred; "
-                       +"please send an email to "
-                       +"ncats.io-webmaster@mail.nih.gov if the "
-                       +"the problem persists.");
-            }
+        if (response == null) {
         }
         else {
-            flash ("error", "One or more of your answers "
-                   +"are incorrect; please try again!");
+            Logger.debug(part.id+": "+response.success+": "+response.message);
+
+            if (response.success > 0) {
+                try {
+                    int stage = part.stage;
+                    repo.nextStage(part).toCompletableFuture().join();
+                    if (stage > 1) {
+                        flash ("success", "Congratulations on completing "
+                               +"challenge "+stage+"!");
+                    }
+                    
+                    if (sub != null) {
+                        Logger.debug(part.id+" advance to next stage "
+                                     +"with submission "+sub.id);
+                    }
+                }
+                catch (Exception ex) {
+                    Logger.error
+                        ("Can't advance to next stage for "+part.id, ex);
+                    flash ("error", "An internal server error has occurred; "
+                           +"please send an email to "
+                           +"ncats.io-webmaster@mail.nih.gov if the "
+                           +"the problem persists.");
+                }
+            }
+            else {
+                flash ("error", response.message);
+            }
         }
 
         return redirect

@@ -1,0 +1,121 @@
+{
+  "swagger" : "2.0",
+  "info" : {
+    "description" : "This is the Biomedical Data Translator Challenge 2 application programming interface (API). \n\nInspired by the **Knowledge Source** web service specification at: https://github.com/NCATS-Tangerine/translator-knowledge-beacon/\n\nImport this file into http://editor.swagger.io/ and 'Generate Server' for your favorite web container. Be sure to enable scripts for this website to work properly. The resulting web container only contains stubs for API calls --- you will need to author code within those stubs for the API to properly function. \n\nBrowse to http://{host}{basePath}/ui/ to test your API yourself.\n",
+    "version" : "3.14159265359...",
+    "title" : "Translator Challenge 2 API",
+    "contact" : {
+      "name" : "I AM A ROBOT",
+      "url" : "https://ncats.nih.gov/translator",
+      "email" : "gc@ncats.io"
+    },
+    "license" : {
+      "name" : "MIT License",
+      "url" : "http://opensource.org/licenses/MIT"
+    }
+  },
+  "host" : "localhost:8080",
+  "basePath" : "/api",
+  "tags" : [ {
+    "name" : "types",
+    "description" : "List of math functions that this API provides"
+  }, {
+    "name" : "functions",
+    "description" : "Execute desired math function"
+  } ],
+  "schemes" : [ "http" ],
+  "produces" : [ "application/json" ],
+  "paths" : {
+    "/types" : {
+      "get" : {
+        "tags" : [ "types" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful response with list of functions and their API endpoint\n",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "$ref" : "#/definitions/inline_response_200"
+              }
+            },
+            "examples" : {
+              "application/json" : [ {
+                "id" : "collatzSiblings",
+                "desc" : "Return missing Collatz siblings",
+                "idmap" : "/function/collatzSiblings"
+              } ]
+            }
+          }
+        },
+        "x-contentType" : "application/json",
+        "x-accepts" : "application/json"
+      }
+    },
+    "/functions/collatzSiblings" : {
+      "post" : {
+        "tags" : [ "functions" ],
+        "summary" : "Return missing Collatz siblings",
+        "description" : "Return the set of numbers that share the same Collatz sequence length as the input numbers.",
+        "consumes" : [ "application/json" ],
+        "produces" : [ "application/json" ],
+        "parameters" : [ {
+          "in" : "body",
+          "name" : "siblingSet",
+          "description" : "A set of numbers sharing the same Collatz sequence length",
+          "required" : false,
+          "schema" : {
+            "$ref" : "#/definitions/siblingSet"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "The set of remaining Collatz siblings\n",
+            "schema" : {
+              "type" : "array",
+              "items" : {
+                "type" : "integer"
+              }
+            },
+            "examples" : {
+              "application/json" : [ 21, 128 ]
+            }
+          }
+        },
+        "x-contentType" : "application/json",
+        "x-accepts" : "application/json"
+      }
+    }
+  },
+  "definitions" : {
+    "inline_response_200" : {
+      "properties" : {
+        "id" : {
+          "type" : "string",
+          "description" : "the function name \n"
+        },
+        "desc" : {
+          "type" : "string",
+          "description" : "a description of the function \n"
+        },
+        "idmap" : {
+          "type" : "string",
+          "description" : "The URL to execute the API call on the id"
+        }
+      }
+    },
+    "siblingSet" : {
+      "type" : "object",
+      "properties" : {
+        "siblingSet" : {
+          "type" : "array",
+          "example" : [ 3, 20 ],
+          "items" : {
+            "type" : "integer"
+          }
+        }
+      }
+    }
+  }
+}
