@@ -1,4 +1,4 @@
-name := """swagger-java-playframework"""
+name := """c2-beacon"""
 
 version := "1.0-SNAPSHOT"
 

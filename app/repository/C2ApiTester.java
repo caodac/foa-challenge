@@ -123,8 +123,11 @@ public class C2ApiTester {
             if (!node.isArray()) return new ChallengeResponse(0,
                     "Something is amiss here ... I was expecting to get an array of integers back in my response.\n\n"+API+tttpath+"   "+json.toString()+"\n\n"+node.toString());
 
-            if (node.size() == answer.size() && answer.contains(node.get(0).asInt()) )
-                return new ChallengeResponse(1, "Checks out!");
+            if (node.size() == answer.size() && answer.contains(node.get(0).asInt()) ) {
+                ChallengeResponse resp = new ChallengeResponse(1, "Checks out!");
+                resp.variables.put("API-URI", API);
+                return resp;
+            }
             else {
                 StringBuilder sb = new StringBuilder
                     ("I don't think this is the correct response for that input:\n[");

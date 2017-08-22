@@ -1,0 +1,21 @@
+@()
+
+@main("Challenge 3 Solver") {
+<h1>Challenge 3 Solver</h1>
+<form method="POST" action="@controllers.routes.HomeController.solve">
+  <table>
+    <tr>
+      <td><b>URL</b></td>
+      <td><input type="text" name="url" placeholder="Enter challenge url">
+        </td>
+    </tr>
+    <tr>
+      <td><b>Email</b></td>
+      <td><input type="text" name="email"
+                       placeholder="Enter your registered challenge email">
+      </td>
+    </tr>
+  </table>
+  <input type="submit"/>
+</form>
+}

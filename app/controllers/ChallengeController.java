@@ -327,28 +327,28 @@ public class ChallengeController extends Controller {
             //System.err.println(magicIsCorrect+":"+magic+":"+myMagic+":"+email+":"+decodedEmail);
 
             if (part == null)
-                return badRequest("This email address doesn't correspond"
+                return badRequest ("This email address doesn't correspond"
                                   +" to a valid participant.\n");
+            else if (part.stage != 2)
+                return badRequest
+                    ("Are you trying to subvert the challenge?\n");
+            
             // exists, have they solved C3 before?
             if (part.stage > 3)
                 return ok("Challenge 3 has been solved.\n");
             else {
-                repo.submission(part, magic)
-                    .thenApplyAsync(sub -> {
-                        Logger.debug(part.id+": submission "
-                                     +sub.id+" => "+magic);
-                        return sub;
-                    }, httpExecutionContext.current()).exceptionally(t -> {
-                            Logger.error("Failed to insert submission for "
-                                         +part.id);
-                            return null;
-                        });
+                Submission sub = repo.submission(part, magic)
+                    .toCompletableFuture().join();
+                Logger.debug(part.id+": c3 submission "+sub.id);
 
                 if (!magicIsCorrect)
                     return badRequest("Sorry, invalid magic value "
                                       +"specified. Try again.\n");
                 repo.nextStage(part);
-                return ok("Success.\n");
+                return ok("Success! Please visit "+getUrl
+                          (routes.ChallengeController.challenge
+                           (part.id.toString()))
+                          + " to continue with the challenge.\n");
             }
         }, httpExecutionContext.current()).exceptionally(t -> {
             if (email == null) {
@@ -447,12 +447,16 @@ public class ChallengeController extends Controller {
         });
     }
 
-
-    Result advance (Participant part, Map<String, String[]> data) {
+    ChallengeResponse submit (Participant part,
+                              int stage, Map<String, String[]> data) {
         Submission sub = null;
         try {
             sub = repo.submission(part, data)
                 .toCompletableFuture().join();
+            if (sub != null) {
+                Logger.debug(part.id+" advance to next stage "
+                             +"with submission "+sub.id);
+            }
         }
         catch (Exception ex) {
             Logger.error("Can't create submission for "+part.id, ex);
@@ -460,10 +464,11 @@ public class ChallengeController extends Controller {
 
         // check the answer
         ChallengeResponse response = null;
-        switch (part.stage) {
+        switch (stage) {
         case 1:
             // advance to next stage
             response = new ChallengeResponse (1, null);
+            session().clear();
             break;
 
         case 2:
@@ -482,11 +487,20 @@ public class ChallengeController extends Controller {
             response = app.checkC6(part, data);
             break;
         }
+        
+        return response;
+    }
+    
 
+    Result advance (Participant part, Map<String, String[]> data) {
+        ChallengeResponse response = submit (part, part.stage, data);
         if (response == null) {
         }
         else {
             Logger.debug(part.id+": "+response.success+": "+response.message);
+            for (Map.Entry<String, String> me : response.variables.entrySet()) {
+                session (me.getKey(), me.getValue());
+            }
 
             if (response.success > 0) {
                 try {
@@ -495,12 +509,7 @@ public class ChallengeController extends Controller {
                     if (stage > 1) {
                         flash ("success", "Congratulations on completing "
                                +"challenge "+stage+"!");
-                    }
-                    
-                    if (sub != null) {
-                        Logger.debug(part.id+" advance to next stage "
-                                     +"with submission "+sub.id);
-                    }
+                    }                    
                 }
                 catch (Exception ex) {
                     Logger.error
@@ -527,12 +536,21 @@ public class ChallengeController extends Controller {
             UUID uuid = UUID.fromString(id);
             return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
                     if (part != null) {
-                        if (!stage.equals(part.stage))
-                            return redirect(routes.ChallengeController
-                                            .challenge(id));
-
                         Map<String, String[]> data =
                             request().body().asFormUrlEncoded();
+                        
+                        if (!stage.equals(part.stage)) {
+                            ChallengeResponse resp = submit (part, stage, data);
+                            if (resp != null) {
+                                for (Map.Entry<String, String> me
+                                         : resp.variables.entrySet()) {
+                                    session (me.getKey(), me.getValue());
+                                }
+                            }
+                            
+                            return redirect(routes.ChallengeController
+                                            .challenge(id));
+                        }
 
                         return advance (part, data);
                     }

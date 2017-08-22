@@ -61,42 +61,92 @@ public class ChallengeApp {
         ChallengeResponse resp = new ChallengeResponse ();
         Configuration conf = config.getConfig("challenge").getConfig("c5");
         Configuration optional = conf.getConfig("optional");
-        
+
+        int incorrect = 0;
         for (Map.Entry<String, String[]> me : data.entrySet()) {
             String[] val = me.getValue();
             if (val.length > 0 && !val[0].equals("")) {
                 Logger.info(me.getKey()+": "+val[0]);
-                try {
-                    int iv = Integer.parseInt(val[0]);
-                    Integer ans = conf.getInt(me.getKey());
-                    boolean opt = false;
-                    if (ans == null) {
-                        ans = optional.getInt(me.getKey());
-                        opt = true;
+                
+                if ("maxclique-size".equals(me.getKey())) {
+                    try {
+                        int iv = Integer.parseInt(val[0]);
+                        Integer ans = optional.getInt("maxclique-size", null);
+                        if (ans != null && ans.equals(iv)) {
+                            resp.variables.put(me.getKey(), ans.toString());
+                        }
+                        else
+                            resp.variables.remove(me.getKey());
                     }
-                    
-                    if (ans != null && !ans.equals(iv)) {
-                        Logger.debug
-                            (part.id+": incorrect "
-                             +me.getKey()+"="+iv+" optional="+opt);
-                        
-                        if (!opt)
-                            return resp;
-                    }
-                    else if (ans != null) {
-                        resp.variables.put(me.getKey(), ans.toString());
+                    catch (NumberFormatException ex) {
+                        Logger.error("Bogus value specified for "
+                                     +me.getKey(), ex);
                     }
                 }
-                catch (NumberFormatException ex) {
-                    Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
-                    return resp;
+                else if ("maxclique-span".equals(me.getKey())) {
+                    try {
+                        String[] toks = val[0].split("[\\s,;]+");
+                        List<String> span =
+                            optional.getStringList(me.getKey(), null);
+                        if (span != null) {
+                            if (toks.length == span.size()) {
+                                for (String t : toks)
+                                    span.remove(t.toUpperCase());
+                                
+                                if (span.isEmpty()) {
+                                    resp.variables.put(me.getKey(), val[0]);
+                                }
+                                else
+                                    resp.variables.remove(me.getKey());
+                            }
+                            else
+                                resp.variables.remove(me.getKey());
+                        }
+                        else {
+                            resp.variables.remove(me.getKey());
+                            Logger.error("Key "+me.getKey()+" is not "
+                                         +"defined in configuration!");
+                        }
+                    }
+                    catch (Exception ex) {
+                        Logger.error("Can't validate solution for "
+                                     +me.getKey(), ex);
+                    }
+                }
+                else {
+                    try {
+                        int iv = Integer.parseInt(val[0]);
+                        Integer ans = conf.getInt(me.getKey());
+                        if (ans != null) {
+                            if (!ans.equals(iv)) {
+                                Logger.debug
+                                    (part.id+": incorrect "+me.getKey()+"="+iv);
+                                ++incorrect;
+                                resp.variables.remove(me.getKey());
+                            }
+                            else {
+                                resp.variables.put(me.getKey(), ans.toString());
+                            }
+                        }
+                        else {
+                            resp.variables.remove(me.getKey());
+                            ++incorrect;
+                        }
+                    }
+                    catch (NumberFormatException ex) {
+                        Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
+                        resp.variables.remove(me.getKey());
+                        ++incorrect;
+                    }
                 }
             }
         }
-        
-        Logger.debug(part.id+": passes C5!");
-        resp.success = resp.variables.size();
-        resp.message = null;
+
+        if (incorrect == 0) {
+            Logger.debug(part.id+": passes C5!");
+            resp.success = resp.variables.size();
+            resp.message = null;
+        }
         
         return resp;
     }
@@ -105,7 +155,8 @@ public class ChallengeApp {
                                       Map<String, String[]> data) {
         ChallengeResponse resp = new ChallengeResponse ();
         Configuration c4 = config.getConfig("challenge").getConfig("c4");
-        
+
+        int incorrect = 0;
         for (Map.Entry<String, String[]> me : data.entrySet()) {
             String[] val = me.getValue();
             if (val.length > 0 && !val[0].equals("")) {
@@ -113,24 +164,33 @@ public class ChallengeApp {
                 try {
                     int iv = Integer.parseInt(val[0]);
                     Integer ans = c4.getInt(me.getKey());
-                    if (ans != null && !ans.equals(iv)) {
-                        Logger.debug
-                            (part.id+": incorrect "+me.getKey()+"="+iv);
-                        return resp;
+                    if (ans != null) {
+                        if (!ans.equals(iv)) {
+                            Logger.debug
+                                (part.id+": incorrect "+me.getKey()+"="+iv);
+                            ++incorrect;
+                            
+                        }
+                        else {
+                            resp.variables.put(me.getKey(), ans.toString());
+                        }
                     }
-                    else if (ans != null)
-                        resp.variables.put(me.getKey(), ans.toString());
+                    else {
+                        ++incorrect;
+                    }
                 }
                 catch (NumberFormatException ex) {
                     Logger.warn("Bogus value: "+me.getKey()+"="+val[0]);
-                    return resp;
+                    ++incorrect;
                 }
             }
         }
 
-        resp.success = resp.variables.size();
-        resp.message = null;
-        Logger.debug(part.id+": passes C4!");
+        if (incorrect == 0) {
+            resp.success = resp.variables.size();
+            resp.message = null;
+            Logger.debug(part.id+": passes C4!");
+        }
         
         return resp;
     }
@@ -226,18 +286,6 @@ public class ChallengeApp {
         }
 
         return C2ApiTester.main(ws, part.id, apiurl[0]);
-    }
-    
-    HashMap<Integer,List<String>> createAnswerMap() {
-        HashMap<Integer, List<String>> answerMap = new HashMap();
-        answerMap.put(1, Arrays.asList("D000068877"));
-        answerMap.put(2,Arrays.asList("D019009"));
-        answerMap.put(3,Arrays.asList("D015398","D020935"));
-        answerMap.put(4,Arrays.asList("D008407"));
-        answerMap.put(5,Arrays.asList("D000402","D012130","D004418","D016535"));
-        answerMap.put(6,Arrays.asList("D001249"));
-
-        return answerMap;
     }
     
     HashMap<String,String> getTopics (String pmid){

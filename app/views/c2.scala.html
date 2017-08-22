@@ -19,7 +19,7 @@
           <li>If <em>n</em> is even, divide <em>n</em> by 2.</li>
           <li>If <em>n</em> is odd, multiply <em>n</em> by 3 and add 1.</li>
         </ol>
-        <p><b>Collatz siblings</b> are numbers that have the same path length; e.g., numbers 3 and 20 are siblings because both have path length 8. (Note that <i>path length</i> as we define here starts at 1.) Provide an API that produces Collatz siblings for a given path length <i>P</i> where 1 &le; <i>P</i> &le; 1024.</p>
+        <p><b>Collatz siblings</b> are numbers that have the same path length; e.g., numbers 3 and 20 are siblings because both have path length 8. (Note that <i>path length</i> as defined here is the cardinality of the Collatz sequence starting from a given position.) Provide an API that produces Collatz siblings for a given path length <i>P</i> where 1 &le; <i>P</i> &le; 512.</p>
 
         <p>Follow the specification in this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>example</a> Swagger API definition
         file.</p>
@@ -33,7 +33,8 @@
                  name="API-URI"
                  placeholder="API endpoint"
                  style="width:400px"
-                 aria-describedby="API-URI">
+                 aria-describedby="API-URI"
+                 @if(session.containsKey("API-URI")){value='@session.get("API-URI")'}>
         </div>
 
         @if(part.stage == 2) {
