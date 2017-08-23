@@ -1,12 +1,12 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
+@main(app, "NCATS Translator Challenge"){
 @navbar(part, 3)
 }{
-@header(part, 3, "Challenge 3", "Jupyter Notebooks")
+@header(part, 3, "Task 2", "Jupyter Notebooks")
 }{
 @footer()
 }{
@@ -18,7 +18,7 @@
       <br><br>Since the project will involve working with some pre-existing
       code, this stage will test your patience with some one else's code.
 
-      <br><br>The aim of this challenge is to download and run the Python
+      <br><br>The aim of this task is to download and run the Python
       notebook available
       <a href='@{controllers.routes.ChallengeController.stage(part.id.toString,3) + "?action=notebook"}'>here</a>.
       This will require you to setup a <a href="http://jupyter.org/">Jupyter</a>

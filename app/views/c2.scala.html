@@ -1,19 +1,19 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
+@main(app, "NCATS Translator Challenge"){
 @navbar(part, 2)
 }{
-@header(part, 2, "Challenge 2", "Beacon API")
+@header(part, 2, "Task 1", "Beacon API")
 }{
 @footer()
 }{
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. To help standardize the data being consumed, we have specified a <em>Knowledge Beacon</em> application programming interface (API) that can be found <a href="https://github.com/NCATS-Tangerine/translator-knowledge-beacon/">here</a>. The goal of this challenge is to give the participant familiarity with bringing new APIs online. (If you have firewall enabled, please make sure that you allow incoming traffic from our server <b>128.231.10.251</b>.)</p>
+      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. To help standardize the data being consumed, we have specified a <em>Knowledge Beacon</em> application programming interface (API) that can be found <a href="https://github.com/NCATS-Tangerine/translator-knowledge-beacon/">here</a>. The goal of this task is to give the participant familiarity with bringing new APIs online. (If you have firewall enabled, please make sure that you allow incoming traffic from our server <b>128.231.10.251</b>.)</p>
         <p>As you have seen, Lothar Collatz's conjecture produces <a href="https://oeis.org/A006577">sequences</a> that start from a natural number and have the following pattern: </p>
         <ol>
           <li>If <em>n</em> is even, divide <em>n</em> by 2.</li>

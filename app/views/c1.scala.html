@@ -1,9 +1,9 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
+@main(app, "NCATS Translator Challenge"){
 @navbar(part, 1)
 }{
 @header(part, 1, "Welcome")
@@ -18,39 +18,37 @@
             action="@controllers.routes.ChallengeController.submit(part.id.toString, 1)">
           Welcome to the NCATS Translator Challenge! This is a unique
           URL that you may wish to share with fellow team
-          members. There are <b>six</b> challenges to be completed.
-          Each challenge should take anywhere from minutes, to over an
-          hour to complete. Challenges must be completed in
+          members. There are <b>six</b> tasks to be completed.
+          Each task should take anywhere from minutes, to over an
+          hour to complete. Tasks must be completed in
           sequence.  If you leave the site before completing all of
-          the challenges, you will return where you left off.
-          However, for challenges that have multiple components,
+          the tasks, you will return where you left off.
+          However, for tasks that have multiple components,
           leaving the site prior to completing all components may
           result in loss of your entries and require you to re-enter
-          the information upon returning to the site. 
+          the information upon returning to the site. There is no limit
+          to the number of times you may try to answer each task.
           
           <br><br>We will not be able to provide additional hints for
-          the challenges. Upon successful completion of a challenge,
-          you will see a screen indicating your success and you will
-          be provided with access to a portion of the FOA.  If you
-          provide an incorrect answer, the screen will indicate it is
-          incorrect and you may try again.  There is no limit to the
-          number of times you may try to answer the question. Please
-          report any technical issues with the site (e.g., server errors) to
-          <a href="mailto:ncats.io-webmaster@@mail.nih.gov">ncats.io-webmaster@@mail.nih.gov</a>.
+          the tasks. Upon successful completion of each task,
+          you will be provided with access to a portion of the FOA.
+          The FOA link is available in the top navigation panel.
 
           <br><br><i>NCATS takes this program and the review process
           very seriously.  However, there are elements of humor
-          injected in some of the challenge exercises.  This
+          injected in some of the challenge tasks.  This
           lightheartedness is intended to be engaging and should not
           be misconstrued as a lack of appreciation of the obstacles
           to be overcome to construct a reasoning tool, or the
           importance of the application and review process itself.</i> 
 
-          <br><br>Good luck!
+          <br><br>Please report any technical issues with the site (e.g.,
+          server errors) to
+          <a href="mailto:ncats.io-support@@mail.nih.gov">ncats.io-support@@mail.nih.gov</a>. Good luck!
 
         @if(part.stage == 1){
         <br><input class="btn btn-@if(part.stage>1){success}else{primary}"
-                   type="submit" value="Next"/>
+                   type="submit" value="Start"/>
         }
       </form>
     </div>

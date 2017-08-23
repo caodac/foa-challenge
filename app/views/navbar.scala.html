@@ -4,11 +4,18 @@
   <div class="container-fluid">
     <div class="navbar-header">
       <span class="navbar-text" style="margin-left:5px;"><a class="navbar-link" href="@controllers.routes.ChallengeController.challenge(part.id.toString)">@part.name</a></span>
-      <span class="navbar-text navbar-right" style="margin-left:20px;">
+
+      <span class="navbar-text" style="margin-left:20px;">
         @if(stage<=part.stage){
-            <a class="navbar-link" href="@controllers.routes.ChallengeController.foa(part.id.toString,stage)"><b>FOA @if(stage<8){(part @stage)}else{(full)}</b></a>
+            <a data-hint="This the FOA link download!" data-hintPosition="bottom-middle" data-position="bottom-right-aligned" class="navbar-link" href="@controllers.routes.ChallengeController.foa(part.id.toString,stage)"><b>FOA @if(stage<8){(part @stage)}else{(full)}</b></a>
         }
       </span>
+      
+      <span class="navbar-text navbar-right text-uppercase"
+            style="margin-left:20px;">
+        <b>Challenge closes <span id="end-date"></span></b>
+      </span>
+      
     </div>
   </div>
 </nav>

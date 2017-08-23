@@ -1,12 +1,12 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
+@main(app, "NCATS Translator Challenge"){
 @navbar(part, 4)
 }{
-@header(part, 4, "Challenge 4", "Blackboard Prototype")
+@header(part, 4, "Task 3", "Blackboard Prototype")
 }{
 @footer()
 }{
@@ -20,10 +20,10 @@
 
       <br><br>While far from complete, an initial proof-of-concept implementation
       is provided by <a href="https://spotlite.nih.gov/ncats/blackboard">this codebase</a>.
-      The goal of this challenge is to give the participant an opportunity to be familiarized
-      with the blackboard codebase.
+      The goal of this task is to give the participant an opportunity to
+      get familiarized with the blackboard codebase.
 
-      <br><br>The tasks for this challenge are as follows:
+      <br><br>The steps for this task are as follows:
       <ol>
         <li>Clone the repository <a href="https://spotlite.nih.gov/ncats/blackboard">https://spotlite.nih.gov/ncats/blackboard.git</a></li>
         <li>Build and run the code based on the provided <a href="https://spotlite.nih.gov/ncats/blackboard">instructions</a></li>

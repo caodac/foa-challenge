@@ -1,9 +1,9 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "Congratulations!"){
+@main(app, "Congratulations!"){
 @navbar(part, 8)
 }{
 @header(part, 8, "Congratulations!", "Challenge completed")

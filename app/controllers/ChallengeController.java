@@ -27,6 +27,7 @@ import play.mvc.Result;
 import play.mvc.Call;
 import play.libs.mailer.Email;
 import play.libs.mailer.MailerClient;
+import org.webjars.play.WebJarsUtil;
 
 import java.io.*;
 import java.net.HttpURLConnection;
@@ -61,7 +62,6 @@ public class ChallengeController extends Controller {
      */
     @Inject protected views.html.Challenge challenge;
     @Inject protected views.html.Welcome welcome;
-    @Inject protected views.html.Puzzle puzzle;
 
     @Inject protected Repository repo;
     @Inject protected HttpExecutionContext httpExecutionContext;
@@ -69,7 +69,9 @@ public class ChallengeController extends Controller {
 
     @Inject protected MailerClient mailer;
     @Inject protected Configuration config;
-    @Inject protected ChallengeApp app;
+    
+    @Inject public ChallengeApp app;
+    @Inject public WebJarsUtil webjars;
 
     public ChallengeController () {
     }
@@ -93,8 +95,7 @@ public class ChallengeController extends Controller {
      * <code>GET</code> request with a path of <code>/</code>.
      */
     public Result index() {
-        //return ok(views.txt.nothing.render());
-        return ok (puzzle.render());
+        return ok (welcome.render());
     }
 
     public CompletionStage<Result> challenge (final String id) {
@@ -239,7 +240,7 @@ public class ChallengeController extends Controller {
                                     +"please use the format:\n"+JSON_FORMAT);
 
         final String answer = json.get("answer").asText().trim();
-        final String key = config.getString("challenge.puzzle.key");
+        final String key = app.puzzleKey;
         final boolean correct = key.equalsIgnoreCase(answer);
 
         Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
@@ -329,7 +330,7 @@ public class ChallengeController extends Controller {
             if (part == null)
                 return badRequest ("This email address doesn't correspond"
                                   +" to a valid participant.\n");
-            else if (part.stage != 2)
+            else if (part.stage < 3)
                 return badRequest
                     ("Are you trying to subvert the challenge?\n");
             
@@ -508,15 +509,14 @@ public class ChallengeController extends Controller {
                     repo.nextStage(part).toCompletableFuture().join();
                     if (stage > 1) {
                         flash ("success", "Congratulations on completing "
-                               +"challenge "+stage+"!");
+                               +"task "+(stage-1)+"!");
                     }                    
                 }
                 catch (Exception ex) {
                     Logger.error
                         ("Can't advance to next stage for "+part.id, ex);
                     flash ("error", "An internal server error has occurred; "
-                           +"please send an email to "
-                           +"ncats.io-webmaster@mail.nih.gov if the "
+                           +"please send an email to " +app.email +" if the "
                            +"the problem persists.");
                 }
             }

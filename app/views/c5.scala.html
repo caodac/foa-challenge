@@ -1,12 +1,12 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
+@main(app, "NCATS Translator Challenge"){
 @navbar(part, 5)
 }{
-@header(part, 5, "Challenge 5", "Graph Queries")
+@header(part, 5, "Task 4", "Graph Queries")
 }{
 @footer()
 }{
@@ -18,12 +18,12 @@
       extent, is precipitated by the inherent lack of unambiguous semantics
       and lexicon needed to <em>translate</em> data into knowledge.
       Implementing such translation engine often requires sufficient knowledge
-      of basic graph theory and algorithms. The goal of this challenge,
+      of basic graph theory and algorithms. The goal of this task,
       therefore, is to evaluate the participant's ability to work with
       graph data effectively.
       Please use the following hypothetical <a href='@{controllers.routes.ChallengeController.stage(part.id.toString,5) + "?action=download"}'>knowledge hypergraph</a>
       to answer
-      all questions in this challenge. The participant is free to use any
+      all questions in this task. The participant is free to use any
       available resources to answer the questions.
 
       <form id="c5-form" class="form-inline" 

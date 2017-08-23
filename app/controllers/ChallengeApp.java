@@ -3,6 +3,9 @@ package controllers;
 import java.util.*;
 import java.net.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.time.*;
+import java.time.temporal.*;
 
 import play.Logger;
 import play.Configuration;
@@ -26,7 +29,13 @@ import repository.ChallengeResponse;
 
 @Singleton
 public class ChallengeApp {
-    final protected int maxStage;
+    final public int maxStage;
+    final public String email;
+    final public LocalDateTime deadline;
+    final public String puzzleKey;
+
+    final SimpleDateFormat sdf;
+    
     final protected Environment env;
     final protected Configuration config;
     final protected WSClient ws;
@@ -47,15 +56,39 @@ public class ChallengeApp {
             throw new RuntimeException
                 ("***** You must define play.http.host in production!!! *****");
         }
+
+        sdf = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss");
         
         maxStage = config.getInt("challenge.max-stage", 8);
+        email = config.getString("challenge.support-email", "");
+        
+        String date = config.getString("challenge.end-date", null);
+        if (date != null) {
+            LocalDateTime d = null;
+            try {
+                d = LocalDateTime.parse(date);
+            }
+            catch (Exception ex) {
+                Logger.error("Bad date format: "+date, ex);
+                d = LocalDateTime.now().plusDays(7);
+            }
+            deadline = d;
+        }
+        else deadline = LocalDateTime.now().plusDays(7);
+        
+        puzzleKey = config.getString("challenge.puzzle.key", null);
+        if (puzzleKey == null)
+            throw new RuntimeException ("***** puzzle key is null! ******");
+        
+        Logger.debug("########### Challenge Parameters...");
+        Logger.debug("Email: "+email);
+        Logger.debug("End date: " + date);
+        
         this.env = env;
         this.config = config;
         this.ws = ws;
     }
     
-    public int getMaxStage () { return maxStage; }
-
     public ChallengeResponse checkC5 (Participant part,
                                       Map<String, String[]> data) {
         ChallengeResponse resp = new ChallengeResponse ();
@@ -355,6 +388,10 @@ public class ChallengeApp {
         return null;
     }
 
+    public long deadlineDuration () {
+        return LocalDateTime.now().until(deadline, ChronoUnit.SECONDS);
+    }
+    
     public Configuration config () { return config; }
     public Environment env () { return env; }
 }

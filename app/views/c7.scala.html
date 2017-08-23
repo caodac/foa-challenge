@@ -1,11 +1,11 @@
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge") {
+@main(app, "NCATS Translator Challenge") {
     @navbar(part, 7)
 } {
-    @header(part, 7, "Challenge 7", "What should I spend my money on?")
+    @header(part, 7, "Task 6", "What should I spend my money on?")
 } {
     @footer()
 } {

@@ -1,12 +1,12 @@
 @import play.twirl.api.HtmlFormat
 @import models.Participant
 
-@(webjars: org.webjars.play.WebJarsUtil, part: Participant)
+@(app: controllers.ChallengeController, part: Participant)
 
-@main(webjars, "NCATS Translator Challenge"){
+@main(app, "NCATS Translator Challenge"){
 @navbar(part, 6)
 }{
-@header(part, 6, "Challenge 6", "Clinical Outcome Pathway")
+@header(part, 6, "Task 5", "Clinical Outcome Pathway")
 }{
 @footer()
 }{

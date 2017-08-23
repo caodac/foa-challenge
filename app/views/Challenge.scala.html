@@ -1,32 +1,34 @@
 @import models.Participant
-@this(webjars: org.webjars.play.WebJarsUtil)
+@this(provider: javax.inject.Provider[controllers.ChallengeController])
 @(part: Participant, stage: Int)
 
-@stage match {
-  case 1 => {
-    @c1(webjars, part)
-  }
-  case 2 => {
-    @c2(webjars, part)
-  }
-  case 3 => {
-    @c3(webjars, part)
-  }
-  case 4 => {
-    @c4(webjars, part)
-  }
-  case 5 => {
-    @c5(webjars, part)
-  }
-  case 6 => {
-    @c6(webjars, part)
-  }
-  case 7 => {
-    @c7(webjars, part)
-  }
-  case 8 => {
-    @c8(webjars, part)
-  }
-  case _ => {
+@defining(provider.get()){ app =>
+  @stage match {
+    case 1 => {
+       @c1(app, part)
+    }
+    case 2 => {
+       @c2(app, part)
+    }
+    case 3 => {
+       @c3(app, part)
+    }
+    case 4 => {
+       @c4(app, part)
+    }
+    case 5 => {
+       @c5(app, part)
+    }
+    case 6 => {
+       @c6(app, part)
+    }
+    case 7 => {
+       @c7(app, part)
+    }
+    case 8 => {
+       @c8(app, part)
+    }
+    case _ => {
+    }
   }
 }
