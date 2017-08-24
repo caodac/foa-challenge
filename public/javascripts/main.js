@@ -44,23 +44,18 @@ CountDownTimer.prototype.expired = function() {
 };
 
 CountDownTimer.parse = function(seconds) {
+    var d = seconds / 86400,
+	h = (seconds - d*86400) / 3600,
+	m = (seconds - (d*86400 + h*3600)) / 60;
+    
     return {
-	'days': (seconds / 86400) | 0,
-	'hours': (seconds / 3600) | 0,
-	'minutes': (seconds / 60) | 0,
+	'days': d | 0,
+	'hours': h | 0,
+	'minutes': m | 0,
 	'seconds': (seconds % 60) | 0
     };
 };
 
 CountDownTimer.prototype.expired = function() {
     return !this.running;
-};
-
-CountDownTimer.parse = function(seconds) {
-    return {
-	'days': (seconds / 86400) | 0,
-	'hours': (seconds / 3600) | 0,
-	'minutes': (seconds / 60) | 0,
-	'seconds': (seconds % 60) | 0
-    };
 };

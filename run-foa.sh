@@ -1,8 +1,7 @@
 #!/bin/sh
-# script to invoke this in production!
+# script to invoke this in production; make sure you update
+# conf/application.conf directly instead of using -D to override
 nohup ./bin/foa-challenge \
-  -Dhttp.port=9004 \
   -Dplay.mailer.mock=no \
-  -Dplay.http.host="https://ncats.io" \
-  -Dplay.http.context="/challenge" \
+  -Dplay.evolutions.enabled=false \
   -Dplay.http.secret.key=`head -c2096 /dev/urandom | sha256sum |cut -d' ' -f1` &
