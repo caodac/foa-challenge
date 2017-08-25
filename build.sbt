@@ -14,6 +14,7 @@ libraryDependencies ++= Seq(
   guice,
   jdbc,
   ws,
+  ehcache,
   "com.h2database" % "h2" % "1.4.194",
   "mysql" % "mysql-connector-java" % "5.1.43",
   "com.typesafe.play" %% "play-json" % "2.6.0",

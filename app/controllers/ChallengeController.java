@@ -124,7 +124,7 @@ public class ChallengeController extends Controller {
                     if (part != null) {
                         if (stage > part.stage || stage < 1)
                             return redirect(routes.ChallengeController
-                                            .challenge(id).url());
+                                            .challenge(id));
 
                         String action = request().getQueryString("action");
                         if (action != null) {
@@ -515,7 +515,11 @@ public class ChallengeController extends Controller {
         else {
             Logger.debug(part.id+": "+response.success+": "+response.message);
             for (Map.Entry<String, String> me : response.variables.entrySet()) {
-                session (me.getKey(), me.getValue());
+                String value = me.getValue();
+                if (value != null)
+                    session (me.getKey(), value);
+                else
+                    session().remove(me.getKey());
             }
 
             if (response.success > 0) {
@@ -564,7 +568,11 @@ public class ChallengeController extends Controller {
                             if (resp != null) {
                                 for (Map.Entry<String, String> me
                                          : resp.variables.entrySet()) {
-                                    session (me.getKey(), me.getValue());
+                                    String value = me.getValue();
+                                    if (value != null)
+                                        session (me.getKey(), value);
+                                    else
+                                        session().remove(me.getKey());
                                 }
                             }
                             

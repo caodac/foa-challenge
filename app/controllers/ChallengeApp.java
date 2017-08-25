@@ -6,11 +6,15 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.*;
 import java.time.temporal.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
+import static java.util.concurrent.CompletableFuture.supplyAsync;
 
 import play.Logger;
 import play.Configuration;
 import play.Environment;
 import play.libs.ws.WSClient;
+import play.cache.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -34,14 +38,14 @@ public class ChallengeApp {
     final public LocalDateTime deadline;
     final public String puzzleKey;
 
-    final SimpleDateFormat sdf;
-    
     final protected Environment env;
     final protected Configuration config;
     final protected WSClient ws;
+    final protected AsyncCacheApi cache;
     
     @Inject
-    public ChallengeApp (Environment env, Configuration config, WSClient ws) {
+    public ChallengeApp (Environment env, Configuration config,
+                         WSClient ws, AsyncCacheApi cache) {
         String host = config.getString("play.http.host", "");
         Logger.debug("########### Initializing Challenge App...");
         Logger.debug("Host: "+host);
@@ -57,8 +61,6 @@ public class ChallengeApp {
                 ("***** You must define play.http.host in production!!! *****");
         }
 
-        sdf = new SimpleDateFormat ("yyyy-MM-dd'T'HH:mm:ss");
-        
         maxStage = config.getInt("challenge.max-stage", 8);
         email = config.getString("challenge.support-email", "");
         
@@ -87,6 +89,7 @@ public class ChallengeApp {
         this.env = env;
         this.config = config;
         this.ws = ws;
+        this.cache = cache;
     }
     
     public ChallengeResponse checkC5 (Participant part,
@@ -239,11 +242,37 @@ public class ChallengeApp {
             String id = conf.getString("id");
             String topic = conf.getString("topic");
             for (String s : meshIds) {
-                if (s.equalsIgnoreCase(id) || s.equalsIgnoreCase(topic))
+                if (s.equalsIgnoreCase(id) || s.equalsIgnoreCase(topic)) {
+                    Logger.debug(category+": "+s +" => "+topic);
                     return topic;
+                }
             }
         }
         
+        return null;
+    }
+
+    Map<String, String> getCachedTopics (String pmid) {
+        try {
+            CompletionStage<Map<String, String>> topics = cache.getOrElseUpdate
+                (pmid, new Callable<CompletionStage<Map<String, String>>> () {
+                        public CompletionStage<Map<String, String>> call ()
+                            throws Exception {
+                            try {
+                                return supplyAsync
+                                (() -> getTopics (Long.parseLong(pmid.trim())));
+                            }
+                            catch (Exception ex) {
+                                Logger.error("Can't getTopics", ex);
+                            }
+                            return null;
+                        }
+                    });
+            return topics.toCompletableFuture().get();
+        }
+        catch (Exception ex) {
+            Logger.error("Future fails", ex);
+        }
         return null;
     }
     
@@ -260,52 +289,62 @@ public class ChallengeApp {
         if (target != null) {
             String topic = matchTopic ("target", target);
             if (topic == null) {
-                HashMap<String,String> mTarget = getTopics (target[0]);
-                topic = matchTopic ("target",
-                                    mTarget.keySet().toArray(new String[0]));
+                Map<String, String> mTarget = getCachedTopics (target[0]);
+                if (mTarget != null)
+                    topic = matchTopic
+                        ("target", mTarget.keySet().toArray(new String[0]));
             }
 
-            if (topic != null)
-                response.variables.put("c6-target", topic);
+            response.variables.put("c6-target", topic);
         }
         
         if (pathway != null) {
             String topic = matchTopic ("pathway", pathway);
             if (topic == null) {
-                HashMap<String, String> mPathway = getTopics(pathway[0]);
-                topic = matchTopic ("pathway",
-                                    mPathway.keySet().toArray(new String[0]));
+                Map<String, String> mPathway = getCachedTopics (pathway[0]);
+                if (mPathway != null)
+                    topic = matchTopic
+                    ("pathway", mPathway.keySet().toArray(new String[0]));
             }
 
-            if (topic != null)
-                response.variables.put("c6-pathway", topic);
+            response.variables.put("c6-pathway", topic);
         }
         
         if (cell != null) {
             String topic = matchTopic ("cell", cell);
             if (topic == null) {
-                HashMap<String,String> mCell = getTopics(cell[0]);
-                topic = matchTopic ("cell",
-                                    mCell.keySet().toArray(new String[0]));
+                Map<String,String> mCell = getCachedTopics(cell[0]);
+                if (mCell != null)
+                    topic = matchTopic
+                        ("cell", mCell.keySet().toArray(new String[0]));
             }
 
-            if (topic != null)
-                response.variables.put("c6-cell", topic);
+            response.variables.put("c6-cell", topic);
         }
         
         if (symptom != null) {
             String topic = matchTopic ("symptom", symptom);
             if (topic == null) {
-                HashMap<String,String> mSymptom = getTopics(symptom[0]);
-                topic = matchTopic ("cell",
-                                    mSymptom.keySet().toArray(new String[0]));
+                Map<String,String> mSymptom = getCachedTopics(symptom[0]);
+                if (mSymptom != null)
+                    topic = matchTopic
+                        ("symptom", mSymptom.keySet().toArray(new String[0]));
             }
 
-            if (topic != null)
-                response.variables.put("c6-symptom", topic);
+            response.variables.put("c6-symptom", topic);
         }
 
-        response.success = response.variables.size();
+        response.success = 0;
+        for (Map.Entry<String, String> me : response.variables.entrySet()) {
+            if (me.getValue() != null) {
+                Logger.debug("c6: "+me.getKey()+" <=> "+me.getValue());
+                ++response.success;
+            }
+        }
+        if (response.success != 4)
+            response.success = 0;
+        
+        Logger.debug("C6: "+response.variables);
 
         return response;
     }
@@ -321,12 +360,12 @@ public class ChallengeApp {
         return C2ApiTester.main(ws, part.id, apiurl[0]);
     }
     
-    HashMap<String,String> getTopics (String pmid){
+    Map<String,String> getTopics (long pmid) {
         HashMap<String,String> topics = new HashMap<String,String>();
         try{
             URL url = new URL
                 ("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pubmed&id="
-                 +Long.parseLong(pmid.trim())+
+                 +pmid+
                  "&retmode=xml");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setDoOutput(true);
@@ -368,6 +407,8 @@ public class ChallengeApp {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Logger.debug("TOPICS: "+pmid+" => "+topics);
 
         return topics;
     }

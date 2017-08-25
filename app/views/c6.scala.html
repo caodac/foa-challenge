@@ -44,21 +44,21 @@
                  placeholder="Target PMID"
                  aria-describedby="c6-target"
                  style="width:200px;margin-left:20px;"
-                 @if(session.containsKey("c6-target")){value='@session.get("c6-target")' readonly}else{required}>
+                 @if(session.containsKey("c6-target")){value='@session.get("c6-target")'}else{required}>
           <br>
           <input type="text" class="form-control"
                  name="c6-pathway"
                  placeholder="Pathway PMID"
                  aria-describedby="c6-pathway"
                  style="width:200px;margin-left:40px;"
-                 @if(session.containsKey("c6-pathway")){value='@session.get("c6-pathway")' readonly}else{required}>
+                 @if(session.containsKey("c6-pathway")){value='@session.get("c6-pathway")'}else{required}>
           <br>
           <input type="text" class="form-control"
                  name="c6-cell"
                  placeholder="Cell Type or Tissue PMID"
                  aria-describedby="c6-cell"
                  style="width:200px;margin-left:60px;"
-                 @if(session.containsKey("c6-cell")){value='@session.get("c6-cell")' readonly}else{required}>
+                 @if(session.containsKey("c6-cell")){value='@session.get("c6-cell")'}else{required}>
 
           <br>
             <input type="text" class="form-control"
@@ -66,7 +66,7 @@
                    placeholder="Symptom PMID"
                    aria-describedby="c6-symptom"
                    style="width:200px;margin-left:80px;margin-bottom:10px;"
-                   @if(session.containsKey("c6-symptom")){value='@session.get("c6-symptom")' readonly}else{required}>
+                   @if(session.containsKey("c6-symptom")){value='@session.get("c6-symptom")'}else{required}>
             <br>
           <span class="label label-@if(part.stage>6){success}else{primary}"
                 style="margin-left:100px">Asthma</span>
