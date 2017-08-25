@@ -210,6 +210,10 @@ public class ChallengeController extends Controller {
 
     @BodyParser.Of(value = BodyParser.AnyContent.class)
     public CompletionStage<Result> register () {
+        if (app.deadlineDuration() < 0) {
+            return badRequestAsync ("Sorry, the challenge is now closed!");
+        }
+        
         JsonNode json = request().body().asJson();
         Logger.debug(">>> "+json);
         if (json == null)
@@ -295,12 +299,23 @@ public class ChallengeController extends Controller {
     }
 
     public CompletionStage<Result> handleC3Request() {
+        if (app.deadlineDuration() < 0) {
+            return badRequestAsync ("Sorry, the challenge is now closed!");
+        }
+        
         DynamicForm dynamicForm = formFactory.form().bindFromRequest();
         String email = dynamicForm.get("email");
         String magic = dynamicForm.get("magic");
 
         // does this email exist?
         return repo.fetchParticipant(email).thenApplyAsync(part -> {
+            if (part == null)
+                return badRequest ("This email address doesn't correspond"
+                                  +" to a valid participant.\n");
+            else if (part.stage < 3)
+                return badRequest
+                    ("Are you trying to subvert the challenge?\n");
+            
             // magic is simply the base64 encoded email
             String myMagic = "";
             try {
@@ -326,13 +341,6 @@ public class ChallengeController extends Controller {
             } catch (Exception e) {;}
             boolean magicIsCorrect = decodedEmail.trim().equals(email.trim()) || myMagic.equals(magic);
             //System.err.println(magicIsCorrect+":"+magic+":"+myMagic+":"+email+":"+decodedEmail);
-
-            if (part == null)
-                return badRequest ("This email address doesn't correspond"
-                                  +" to a valid participant.\n");
-            else if (part.stage < 3)
-                return badRequest
-                    ("Are you trying to subvert the challenge?\n");
             
             // exists, have they solved C3 before?
             if (part.stage > 3)
@@ -362,11 +370,18 @@ public class ChallengeController extends Controller {
 
     @BodyParser.Of(value = BodyParser.MultipartFormData.class)
     public CompletionStage<Result> handleC7Request(String id) {
+        if (app.deadlineDuration() < 0) {
+            flash ("error", "Sorry, the challenge is now closed!");
+            return async (redirect(routes.ChallengeController.challenge(id)));
+        }
+        
         UUID uuid = UUID.fromString(id);
         return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
             Http.MultipartFormData<File> body =
                 request().body().asMultipartFormData();
-            Http.MultipartFormData.FilePart<File> filePart = body.getFile("c7assoc");
+            Http.MultipartFormData.FilePart<File> filePart =
+                body.getFile("c7assoc");
+            
             if (filePart == null) {
                 flash ("error", "No association file was provided");
                 return redirect(routes.ChallengeController.challenge(id));
@@ -449,7 +464,7 @@ public class ChallengeController extends Controller {
     }
 
     ChallengeResponse submit (Participant part,
-                              int stage, Map<String, String[]> data) {
+                              int stage, Map<String, String[]> data) {        
         Submission sub = null;
         try {
             sub = repo.submission(part, data)
@@ -464,7 +479,7 @@ public class ChallengeController extends Controller {
         }
 
         // check the answer
-        ChallengeResponse response = null;
+        ChallengeResponse response = null;      
         switch (stage) {
         case 1:
             // advance to next stage
@@ -532,6 +547,11 @@ public class ChallengeController extends Controller {
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
     public CompletionStage<Result> submit (final String id,
                                            final Integer stage) {
+        if (app.deadlineDuration() < 0) {
+            flash ("error", "Sorry, the challenge is now closed!");
+            return async (redirect(routes.ChallengeController.challenge(id)));
+        }
+        
         try {
             UUID uuid = UUID.fromString(id);
             return repo.fetchParticipant(uuid).thenApplyAsync(part -> {

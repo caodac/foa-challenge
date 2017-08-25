@@ -54,39 +54,39 @@
 
 <script>    
     $(document).ready(function () {
+	console.log('starting timer...');
+	
 	var dur = @app.app.deadlineDuration;
-	var timer = dur < 60000 ? new CountDownTimer (dur)
-	    : new CountDownTimer (dur, 60000);
+	var timer = new CountDownTimer (dur, 10000);
 	timer.onTick(formatCounter).start();
 
 	function formatCounter(days,hours,minutes,seconds) {
 	    if (days > 0) {
 		$('#end-date')
-		    .html('in '+days
+		    .html('closes in '+days
 			  +(days > 1 ? ' days':'day'));
 	    }
 	    else if (hours > 0) {
 		$('#end-date')
-		    .html('in '+hours
+		    .html('closes in '+hours
 			  +(hours > 1 ? ' hours':'hour')+', '
 			  +minutes +(minutes > 1 ? ' minutes':'minute'));
 	    }
 	    else if (minutes > 0) {
 		$('#end-date')
-		    .html('in '+minutes
+		    .html('closes in '+minutes
 			  +(minutes > 1 ? ' minutes':'minute')
 			  +' and '+seconds+(seconds > 1 ? ' seconds':' second'));
 	    }
 	    else if (seconds > 0) {
 		$('#end-date')
-		    .html('in ' + seconds
+		    .html('closes in ' + seconds
 			  + (seconds > 1 ? ' seconds' : 'second'));
 	    }
 	    else {
-		$('#end-date').html('now!');
+		$('#end-date').html('closed!');
 	    }
+	    //console.log('d='+days+' h='+hours+' m='+minutes+' s='+seconds);
 	}
-	
-	console.log('starting timer...');
     });
 </script>

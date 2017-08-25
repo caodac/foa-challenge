@@ -44,14 +44,13 @@ CountDownTimer.prototype.expired = function() {
 };
 
 CountDownTimer.parse = function(seconds) {
-    var d = seconds / 86400,
-	h = (seconds - d*86400) / 3600,
-	m = (seconds - (d*86400 + h*3600)) / 60;
-    
+    var d = seconds / 86400 | 0;
+    var h = (seconds - d*86400) / 3600 | 0;
+    var m = (seconds - (d*86400 + h*3600)) / 60 | 0;
     return {
-	'days': d | 0,
-	'hours': h | 0,
-	'minutes': m | 0,
+	'days': d,
+	'hours': h,
+	'minutes': m,
 	'seconds': (seconds % 60) | 0
     };
 };
