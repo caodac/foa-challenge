@@ -1,4 +1,4 @@
-package repository;
+package solver;
 
 import java.io.*;
 import java.util.*;
@@ -6,7 +6,7 @@ import java.util.function.Consumer;
 import play.Logger;
 
 /**
- * sbt "runMain repository.C5Solver GRAPH..."
+ * sbt "runMain solver.C5Solver GRAPH..."
  */
 public class C5Solver {
     long[] nodes;
@@ -313,7 +313,7 @@ public class C5Solver {
 
     public static void main (String[] argv) throws Exception {
         if (argv.length == 0) {
-            System.err.println("Usage: repository.C5Solver GRAPH");
+            System.err.println("Usage: solver.C5Solver GRAPH");
             System.exit(1);
         }
         
