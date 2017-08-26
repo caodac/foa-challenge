@@ -1,14 +1,10 @@
 package controllers;
 
 import play.shaded.ahc.io.netty.handler.codec.base64.Base64Encoder;
-import repository.C2ApiTester;
 import repository.ChallengeResponse;
 import repository.Repository;
 import models.Participant;
 import models.Submission;
-
-import au.com.bytecode.opencsv.CSVReader;
-import org.apache.commons.math3.util.Precision;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -116,6 +112,42 @@ public class ChallengeController extends Controller {
         }
     }
 
+    Result doAction (Participant part, int stage, String action) {
+        if ("download".equalsIgnoreCase(action)) {
+            File file = app.download(stage);
+            if (file != null) {
+                Logger.debug(part.id + ": download file " + file);
+                return ok(file, false);
+            }
+        }
+        else if ("notebook".equalsIgnoreCase(action)) {
+            Configuration conf = config.getConfig("challenge").getConfig("c3");
+            String c3Url = conf.getString("handler-url");
+            String encodedUrl = Base64.getEncoder()
+                .encodeToString(c3Url.getBytes());
+            File file = app.download(stage);
+            if (file != null) {
+                // read in file, replace string and send back
+                try {
+                    BufferedReader reader = new BufferedReader(new FileReader(file));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = reader.readLine()) != null) sb.append(line);
+                    reader.close();
+                    String ret = sb.toString()
+                        .replace("aHR0cHM6Ly9uY2F0cy5pby9jaGFsbGVuZ2UvYzMvaGFuZGxlcg==", encodedUrl);
+                    response().setContentType("application/vnd.jupyter");
+                    response().setHeader("Content-disposition","attachment; filename=Challenge3.ipynb");
+                    return ok(ret.getBytes());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        
+        return null;
+    }
+
     public CompletionStage<Result> stage (final String id,
                                           final Integer stage) {
         try {
@@ -128,38 +160,14 @@ public class ChallengeController extends Controller {
 
                         String action = request().getQueryString("action");
                         if (action != null) {
-                            if ("download".equalsIgnoreCase(action)) {
-                                File file = app.download(stage);
-                                if (file != null) {
-                                    Logger.debug(part.id + ": download file " + file);
-                                    return ok(file, false);
-                                }
-                            } else if ("notebook".equalsIgnoreCase(action)) {
-                                Configuration conf = config.getConfig("challenge").getConfig("c3");
-                                String c3Url = conf.getString("handler-url");
-                                String encodedUrl = Base64.getEncoder().encodeToString(c3Url.getBytes());
-                                File file = app.download(stage);
-                                if (file != null) {
-                                    // read in file, replace string and send back
-                                    try {
-                                        BufferedReader reader = new BufferedReader(new FileReader(file));
-                                        StringBuilder sb = new StringBuilder();
-                                        String line;
-                                        while ((line = reader.readLine()) != null) sb.append(line);
-                                        reader.close();
-                                        String ret = sb.toString().replace("aHR0cHM6Ly9uY2F0cy5pby9jaGFsbGVuZ2UvYzMvaGFuZGxlcg==", encodedUrl);
-                                        response().setContentType("application/vnd.jupyter");
-                                        response().setHeader("Content-disposition","attachment; filename=Challenge3.ipynb");
-                                        return ok(ret.getBytes());
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
+                            Result r = doAction (part, stage, action);
+                            if (r != null)
+                                return r;
                         }
                         
                         return ok (challenge.render(part, stage));
                     }
+                    
                     return ok (welcome.render());
                 }, httpExecutionContext.current()).exceptionally(t -> {
                         Logger.error("Failed to fetch participant: "+id, t);
@@ -389,72 +397,34 @@ public class ChallengeController extends Controller {
 
             File csvFile = filePart.getFile();
             try {
-                repo.submission(part, csvFile).thenApplyAsync(sub -> {
-                        Logger.debug(part.id+": submission "+sub.id
-                                     +" => "+csvFile);
-                        return sub;
-                    }, httpExecutionContext.current()).exceptionally(t -> {
-                            Logger.error("Failed to insert submission for "
-                                         +part.id+" "+csvFile);
-                            return null;
-                        });
-
-                List<String> genes = new ArrayList<String>();
-                List<String> diseases = new ArrayList<String>();
-                double probSum = 0.0;
-
-                CSVReader csvReader = new CSVReader(new FileReader(csvFile), ',', '"', 1); // skip header line
-                String[] toks;
-                while ((toks = csvReader.readNext()) != null) {
-                    if (toks.length != 3) return badRequest("CSV file was not formatted properly.\n");
-                    genes.add(toks[0]);
-                    diseases.add(toks[1]);
-                    probSum += Double.parseDouble(toks[2]);
-                }
-
-                // check genes and diseases are unique and equal the proper number
-                Set<String> geneSet = new HashSet<String>(genes);
-                Set<String> diseaseSet = new HashSet<String>(diseases);
-
-                if (geneSet.size() != 2000) {
-                    flash ("error", "Your calculation failed. "
-                           +"Incorrect number of genes.");
-                    return redirect (routes.ChallengeController.challenge(id));
-                }
-
-                if (diseaseSet.size() != 500) {
-                    flash ("error", "Your calculation failed. Incorrect "
-                           +"number of diseases.");
-                    return redirect (routes.ChallengeController.challenge(id));
-                }
-
-                // check that we got the maximal probability
-                if (Precision.round(probSum,2) != 0.95) {
-                    flash ("error", "Your calculation failed. The "
-                           +"sum of knowledge scores is not minimal.");
+                ChallengeResponse resp = app.checkC7(part, csvFile);
+                if (resp.success > 0) {
+                    repo.nextStage(part)
+                        .toCompletableFuture().join();
+                    flash ("success", "Congratulations on completing task 7!");
                 }
                 else {
-                    try {
-                        repo.nextStage(part)
-                            .toCompletableFuture().join();
-                    }
-                    catch (Exception ex) {
-                        Logger.error
-                            ("Can't advance to next stage for "+part.id, ex);
-                        flash ("error", "Internal server error; unable "
-                               +"to advance to next stage!");
-                    }
+                    flash ("error", resp.message);
                 }
-            } catch (FileNotFoundException e) {
-                flash ("error", "Error opening CSV file. <code>"
-                       + e.getMessage() + "</code>");
-                Logger.error("Error opening CSV file", e);
-            } catch (IOException e) {
-                flash ("error", "Error opening CSV file. <code>"
-                       + e.getMessage() + "</code>");
-                Logger.error("Error opening CSV file", e);
             }
-
+            catch (Exception ex) {
+                Logger.error
+                    ("Can't advance to next stage for "+part.id, ex);
+                flash ("error", "Internal server error; unable "
+                       +"to advance to next stage!");
+            }
+            
+            // save the file submission regardless
+            repo.submission(part, csvFile).thenApplyAsync(sub -> {
+                    Logger.debug(part.id+": submission "+sub.id
+                                 +" => "+csvFile);
+                    return sub;
+                }, httpExecutionContext.current()).exceptionally(t -> {
+                        Logger.error("Failed to insert submission for "
+                                     +part.id+" "+csvFile);
+                        return null;
+                    });
+                
             return redirect(routes.ChallengeController.challenge(id));
         }, httpExecutionContext.current()).exceptionally(t -> {
             Logger.error("Failed to fetch participant: " + id, t);

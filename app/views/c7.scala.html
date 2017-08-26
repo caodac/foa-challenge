@@ -50,7 +50,7 @@
                     using double quotes.
                 </p>
 
-                @if(part.stage<7){
+                @if(part.stage==7){
                 <form class="form-inline"
                     method="POST"
                     enctype="multipart/form-data"
@@ -61,7 +61,7 @@
                         <input type="file" name="c7assoc" accept="text/csv" placeholder="API endpoint">
                     </div>
                     <br><input class="btn btn-@if(part.stage > 7) {success} else {primary}"
-                type="submit" @if(part.stage > 7) {disabled}/>
+                type="submit"/>
                 </form>
                 }
             </div>

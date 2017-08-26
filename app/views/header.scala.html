@@ -20,7 +20,7 @@
 		   @if(i == stage) {
 		   <li class="active"><a href='@routes.ChallengeController.stage(part.id.toString,i)'><span style="color:white;">@i</span></a></li>
 		   }else{
-                   <li><a href='@routes.ChallengeController.stage(part.id.toString,i)' @if(i<part.stage){style="background-color:#4caf50"}else{style="background-color:#fbc02d"}><span style="color:white;">@i</span></a></li>
+                   <li><a href='@routes.ChallengeController.stage(part.id.toString,i)' @if(i<part.stage||part.stage==8){style="background-color:#4caf50"}else{style="background-color:#fbc02d"}><span style="color:white;">@i</span></a></li>
 		   }
                 } else {
                    <li><span style="color:white;">@i</span></li>

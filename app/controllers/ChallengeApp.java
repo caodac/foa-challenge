@@ -27,6 +27,9 @@ import javax.annotation.processing.Completion;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import au.com.bytecode.opencsv.CSVReader;
+import org.apache.commons.math3.util.Precision;
+
 import models.Participant;
 import repository.C2ApiTester;
 import repository.ChallengeResponse;
@@ -187,6 +190,54 @@ public class ChallengeApp {
         return resp;
     }
 
+    public ChallengeResponse checkC7 (Participant part, File csvFile)
+        throws Exception {
+        List<String> genes = new ArrayList<String>();
+        List<String> diseases = new ArrayList<String>();
+        double probSum = 0.0;
+        
+        ChallengeResponse resp = new ChallengeResponse (0, null);
+        CSVReader csvReader = new CSVReader
+            (new FileReader(csvFile), ',', '"', 1); // skip header line
+        String[] toks;
+        while ((toks = csvReader.readNext()) != null) {
+            if (toks.length != 3) {
+                resp.message = "CSV file was not formatted properly.";
+                return resp;
+            }
+            genes.add(toks[0]);
+            diseases.add(toks[1]);
+            probSum += Double.parseDouble(toks[2]);
+        }
+        
+        // check genes and diseases are unique and equal the proper number
+        Set<String> geneSet = new HashSet<String>(genes);
+        Set<String> diseaseSet = new HashSet<String>(diseases);
+        
+        if (geneSet.size() != 2000) {
+            resp.message = "Your calculation failed. "
+                +"Incorrect number of genes.";
+            return resp;
+        }
+        
+        if (diseaseSet.size() != 500) {
+            resp.message = "Your calculation failed. Incorrect "
+                +"number of diseases.";
+            return resp;
+        }
+
+        // check that we got the maximal probability
+        if (Precision.round(probSum, 2) != 0.95) {
+            resp.message = "Your calculation failed. The "
+                +"sum of knowledge scores is not minimal.";
+        }
+        else {
+            resp.success = 1;
+        }
+
+        return resp;
+    }
+    
     public ChallengeResponse checkC4 (Participant part,
                                       Map<String, String[]> data) {
         ChallengeResponse resp = new ChallengeResponse ();
