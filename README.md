@@ -16,8 +16,8 @@ with a JSON payload:
 ```json
 {
    "email": "foobar@ncats.io",
-   "firstname": "foo",
-   "lastname": "bar"
+   "name": "Team awesome",
+   "answer": "answer to the puzzle"
 }
 ```
 
