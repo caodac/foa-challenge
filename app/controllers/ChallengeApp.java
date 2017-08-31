@@ -38,13 +38,29 @@ import repository.ChallengeResponse;
 public class ChallengeApp {
     final public int maxStage;
     final public String email;
-    final public LocalDateTime deadline;
+    final public LocalDateTime enddate;
+    final public LocalDateTime duedate;
     final public String puzzleKey;
 
     final protected Environment env;
     final protected Configuration config;
     final protected WSClient ws;
     final protected AsyncCacheApi cache;
+
+    static LocalDateTime getDate (Configuration config, String key) {
+        String date = config.getString(key, null);
+        LocalDateTime d = null; 
+        if (date != null) {
+            try {
+                d = LocalDateTime.parse(date);
+            }
+            catch (Exception ex) {
+                Logger.error("Bad date format: "+date, ex);
+                d = LocalDateTime.now().plusDays(7);
+            }
+        }
+        return d;
+    }
     
     @Inject
     public ChallengeApp (Environment env, Configuration config,
@@ -66,20 +82,8 @@ public class ChallengeApp {
 
         maxStage = config.getInt("challenge.max-stage", 8);
         email = config.getString("challenge.support-email", "");
-        
-        String date = config.getString("challenge.end-date", null);
-        if (date != null) {
-            LocalDateTime d = null;
-            try {
-                d = LocalDateTime.parse(date);
-            }
-            catch (Exception ex) {
-                Logger.error("Bad date format: "+date, ex);
-                d = LocalDateTime.now().plusDays(7);
-            }
-            deadline = d;
-        }
-        else deadline = LocalDateTime.now().plusDays(7);
+        enddate = getDate (config, "challenge.end-date");
+        duedate = getDate (config, "challenge.due-date");
         
         puzzleKey = config.getString("challenge.puzzle.key", null);
         if (puzzleKey == null)
@@ -87,7 +91,8 @@ public class ChallengeApp {
         
         Logger.debug("########### Challenge Parameters...");
         Logger.debug("Email: "+email);
-        Logger.debug("End date: " + date);
+        Logger.debug("End date: " + enddate);
+        Logger.debug("Due date: " + duedate);   
         
         this.env = env;
         this.config = config;
@@ -480,8 +485,12 @@ public class ChallengeApp {
         return null;
     }
 
-    public long deadlineDuration () {
-        return LocalDateTime.now().until(deadline, ChronoUnit.SECONDS);
+    public long endDateDuration () {
+        return LocalDateTime.now().until(enddate, ChronoUnit.SECONDS);
+    }
+    
+    public long dueDateDuration () {
+        return LocalDateTime.now().until(duedate, ChronoUnit.SECONDS);
     }
     
     public Configuration config () { return config; }

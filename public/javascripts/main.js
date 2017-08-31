@@ -18,12 +18,15 @@ CountDownTimer.prototype.start = function() {
   (function timer() {
     diff = that.duration - (((Date.now() - start) / 1000) | 0);
 
+      /*
     if (diff > 0) {
       setTimeout(timer, that.granularity);
     } else {
       diff = 0;
       that.running = false;
     }
+      */
+      setTimeout(timer, that.granularity);
 
     obj = CountDownTimer.parse(diff);
     that.tickFtns.forEach(function(ftn) {

@@ -218,7 +218,7 @@ public class ChallengeController extends Controller {
 
     @BodyParser.Of(value = BodyParser.AnyContent.class)
     public CompletionStage<Result> register () {
-        if (app.deadlineDuration() < 0) {
+        if (app.endDateDuration() < 0) {
             return badRequestAsync ("Sorry, the challenge is now closed!");
         }
         
@@ -307,7 +307,7 @@ public class ChallengeController extends Controller {
     }
 
     public CompletionStage<Result> handleC3Request() {
-        if (app.deadlineDuration() < 0) {
+        if (app.endDateDuration() < 0) {
             return badRequestAsync ("Sorry, the challenge is now closed!");
         }
         
@@ -378,7 +378,7 @@ public class ChallengeController extends Controller {
 
     @BodyParser.Of(value = BodyParser.MultipartFormData.class)
     public CompletionStage<Result> handleC7Request(String id) {
-        if (app.deadlineDuration() < 0) {
+        if (app.endDateDuration() < 0) {
             flash ("error", "Sorry, the challenge is now closed!");
             return async (redirect(routes.ChallengeController.challenge(id)));
         }
@@ -521,7 +521,7 @@ public class ChallengeController extends Controller {
     @BodyParser.Of(value = BodyParser.FormUrlEncoded.class)
     public CompletionStage<Result> submit (final String id,
                                            final Integer stage) {
-        if (app.deadlineDuration() < 0) {
+        if (app.endDateDuration() < 0) {
             flash ("error", "Sorry, the challenge is now closed!");
             return async (redirect(routes.ChallengeController.challenge(id)));
         }

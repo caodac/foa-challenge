@@ -56,35 +56,43 @@
     $(document).ready(function () {
 	console.log('starting timer...');
 	
-	var dur = @app.app.deadlineDuration;
+	var dur = @app.app.dueDateDuration;
 	var timer = new CountDownTimer (dur, 10000);
 	timer.onTick(formatCounter).start();
 
 	function formatCounter(days,hours,minutes,seconds) {
 	    if (days > 0) {
-		$('#end-date')
-		    .html('closes in '+days
+		$('#due-date')
+		    .html('in '+days
 			  +(days > 1 ? ' days':'day'));
 	    }
 	    else if (hours > 0) {
-		$('#end-date')
-		    .html('closes in '+hours
+		$('#due-date')
+		    .html('in '+hours
 			  +(hours > 1 ? ' hours':'hour')+', '
 			  +minutes +(minutes > 1 ? ' minutes':'minute'));
 	    }
 	    else if (minutes > 0) {
-		$('#end-date')
-		    .html('closes in '+minutes
+		$('#due-date')
+		    .html('in '+minutes
 			  +(minutes > 1 ? ' minutes':'minute')
 			  +' and '+seconds+(seconds > 1 ? ' seconds':' second'));
 	    }
 	    else if (seconds > 0) {
-		$('#end-date')
-		    .html('closes in ' + seconds
+		$('#due-date')
+		    .html('in ' + seconds
 			  + (seconds > 1 ? ' seconds' : 'second'));
 	    }
+	    else if (days < 0) {
+		$('#due-date')
+		    .html(-1*days+' '+(days < -1 ? ' days':'day')+' ago!');
+	    }
+	    else if (hours < 0) {
+		$('#due-date')
+		    .html(-1*hours+' '+(hours < -1 ? ' hours':'hour')+' ago!');
+	    }
 	    else {
-		$('#end-date').html('closed!');
+		$('#due-date').html('Now!');
 	    }
 	    //console.log('d='+days+' h='+hours+' m='+minutes+' s='+seconds);
 	}
