@@ -104,8 +104,20 @@ public class C2ApiTester {
 
         // Test whether POST works on API
         try {
-            int[][] testList = {{144, 148, 149}, {112, 116, 117}, {49, 50, 51}, {28, 29, 30}};
-            int testIndex = (int)(id.getLeastSignificantBits() & 0xFF)%4;
+            int[][] testList = {
+                {144, 148, 149},
+                {112, 116, 117},
+                {49, 50, 51},
+                {28, 29, 30},
+                {90, 92, 93},
+                {98, 99, 100},
+                {72, 74, 76},
+                {65, 66, 67},
+                {58, 60, 61},
+                {36, 37, 38},
+                {802, 803, 804, 805, 806}
+            };
+            int testIndex = (int)(id.getLeastSignificantBits() & 0xFF)%testList.length;
             int[] test = testList[testIndex];
             //System.out.println("random test: "+testIndex+":test:"+test);
             ObjectNode json = Json.newObject();

@@ -13,16 +13,15 @@
 <div class="section section-basic">
   <div class="section section-basic">
     <div class="container">
-      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. To help standardize the data being consumed, we have specified a <em>Knowledge Beacon</em> application programming interface (API) that can be found <a target="#foa" href="https://github.com/NCATS-Tangerine/translator-knowledge-beacon/">here</a>. The goal of this task is to give the participant familiarity with bringing new APIs online. (If you have firewall enabled, please make sure that you allow incoming traffic from our server <b>128.231.10.251</b>.)</p>
-      <p>Lothar Collatz's conjecture produces <a target="#foa" href="https://oeis.org/A006577">sequences</a> that start from a natural number and have the following pattern: </p>
+      <p>The Biomedical Data Translator consumes a wide variety of data from many sources. To help standardize the data being consumed, we have specified a <em>Knowledge Beacon</em> application programming interface (API) that can be found <a target="#foa" href="https://github.com/NCATS-Tangerine/translator-knowledge-beacon/">here</a>. The goal of this task is to give the participant familiarity with bringing new APIs online. (If you have firewall enabled, please make sure that you allow incoming traffic from one of our servers: <b>128.231.87.101</b> or <b>128.231.87.102</b>.)</p>
+      <p>Lothar Collatz's <a target="#foa" href="https://en.wikipedia.org/wiki/Collatz_conjecture">conjecture</a> produces <a target="#foa" href="https://oeis.org/A006577">sequences</a> that start from a natural number and have the following pattern: </p>
         <ol>
           <li>If <em>n</em> is even, divide <em>n</em> by 2.</li>
           <li>If <em>n</em> is odd, multiply <em>n</em> by 3 and add 1.</li>
         </ol>
-        <p><b>Collatz siblings</b> are numbers that have the same path length; e.g., numbers 3 and 20 are siblings because both have path length 8. (Note that <i>path length</i> as defined here is the cardinality of the Collatz sequence starting from a given position.) Provide an API that produces Collatz siblings for a given pair of integers whose path length <i>P</i> is bounded by 1 &le; <i>P</i> &le; 128.</p>
+        <p><b>Collatz siblings</b> are numbers that have the same path length; e.g., numbers 3 and 20 are siblings because both have path length 8. (Note that <i>path length</i> as defined here is the cardinality of the Collatz sequence starting from a given position.) Provide an API that produces Collatz siblings for a given set of integers whose path length <i>P</i> is bounded by 1 < <i>P</i> &le; 64. For example, the siblings for the integer set <code>{3, 20}</code> are <code>21</code> and <code>128</code>.</p>
 
-        <p>Follow the specification in this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>example</a> Swagger API definition
-        file.</p>
+        <p>Please follow the specification provided in this <a href='@routes.Assets.versioned("resources/swagger.yaml")'>Swagger API</a> definition file for your API implementation.</p>
 
         <form class="form-inline"  method="POST"
             action='@controllers.routes.ChallengeController.submit(part.id.toString, 2)'>
