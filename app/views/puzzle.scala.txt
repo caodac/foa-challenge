@@ -5,7 +5,7 @@ Beta-defensins are antimicrobial peptides that help prevent infections. An NCATS
 
 ICVIDLAVSISFNCLIRLPVVEGGIEDPVTCLKAGAICHIVFCPRRYKQIGVCGLPGTKCCKKP
 
-In order for the peptide to work, the set of substituted residues (i.e., a ‘recognition signature’) must be recognized in a specific order, starting at specific positions, throughout the peptide. In the moment that leads to his discovery, Dr. Lothar proclaims "all roads must lead to Rome" and proceeds to resolve how the peptide presents different possible recognition signatures, beginning from different peptide residues.
+In order for the peptide to work, the set of substituted residues (i.e., a ‘recognition signature’) must be recognized in a specific order, starting at specific positions, throughout the peptide. In the moment that leads to his discovery, Dr. Lothar conjectures "all roads must lead to Rome" and proceeds to resolve how the peptide presents different possible recognition signatures, beginning from different peptide residues.
 
  1: I
  2: CI

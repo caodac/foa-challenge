@@ -35,7 +35,7 @@
                  aria-describedby="API-URI"
                  @if(session.containsKey("API-URI")){value='@session.get("API-URI")'}>
         </div>
-        If you have firewall enabled, please make sure you allow incoming traffic from our servers: <b>128.231.87.101</b>, <b>128.231.87.102</b>.
+        <em>If you have firewall enabled, please make sure you allow incoming traffic from our servers:</em> <code>128.231.87.101</code>, <code>128.231.87.102</code>.
 
         @if(part.stage == 2) {
         <br><input class="btn btn-@if(part.stage>2){success}else{primary}"
