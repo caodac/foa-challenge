@@ -5,6 +5,8 @@
 # COMMENT THIS OUT IN PRODUCTION!!!!
 #
 #->	/	dev.Routes
+GET	/q1-disease-list	controllers.ChallengeController.q1
+GET	/q2-drugandcondition-list	controllers.ChallengeController.q2
 
 ##
 ## main resources
@@ -16,6 +18,7 @@ GET	/:id	controllers.ChallengeController.challenge(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
 GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
 GET	/:id/:stage/foa	controllers.ChallengeController.foa(id: String, stage: Int)
+
 #
 # should really figure out how to properly handle CSRF filter
 #

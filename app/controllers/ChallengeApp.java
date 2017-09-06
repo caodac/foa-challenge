@@ -36,6 +36,13 @@ import repository.ChallengeResponse;
 
 @Singleton
 public class ChallengeApp {
+    public enum PuzzleResult {
+        Correct,
+        NotOrder,
+        Partial,
+        Incorrect
+    }
+    
     final public int maxStage;
     final public String email;
     final public LocalDateTime enddate;
@@ -98,6 +105,47 @@ public class ChallengeApp {
         this.config = config;
         this.ws = ws;
         this.cache = cache;
+    }
+
+    static Map<Character, Integer> charmap (String s) {
+        Map<Character, Integer> map = new TreeMap<>();
+        for (int i = 0; i < s.length(); ++i) {
+            char ch = s.charAt(i);
+            Integer c = map.get(ch);
+            map.put(ch, c==null ? 1 : c+1);
+        }
+        return map;
+    }
+
+    public PuzzleResult checkPuzzle (String answer) {
+        String ans = answer.toUpperCase();
+        if (puzzleKey.equals(ans))
+            return PuzzleResult.Correct;
+
+        // ok now see how is the answer wrong
+        if (ans.length() == puzzleKey.length()) {
+            Map<Character, Integer> m1 = charmap (puzzleKey);
+            Map<Character, Integer> m2 = charmap (ans);
+            if (m1.keySet().containsAll(m2.keySet()))
+                return PuzzleResult.NotOrder;
+        }
+        else {
+            int m = ans.length()+1, n = puzzleKey.length()+1;
+            int[][] C = new int[m][n];
+            // find length of longest common substring..
+            for (int i = 1; i < m; ++i)
+                for (int j = 1; j < n; ++j) {
+                    if (ans.charAt(i-1) == puzzleKey.charAt(j-1))
+                        C[i][j] = C[i-1][j-1] + 1;
+                    else
+                        C[i][j] = Math.max(C[i][j-1], C[i-1][j]);
+                }
+
+            if (C[m-1][n-1] > puzzleKey.length()/2)
+                return PuzzleResult.Partial;
+        }
+
+        return PuzzleResult.Incorrect;
     }
     
     public ChallengeResponse checkC5 (Participant part,

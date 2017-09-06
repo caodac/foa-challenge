@@ -188,7 +188,7 @@ public class ChallengeController extends Controller {
         //return ok (puzzle.render());
         String url = getUrl (routes.ChallengeController.register());
         response().setHeader
-            ("Looking-for-Clues","PLEASE FOCUS ON THE PROBLEM");
+            ("Looking-For-Clues","PLEASE FOCUS ON THE PROBLEM");
         return ok(views.txt.puzzle.render(url));
     }
 
@@ -196,7 +196,7 @@ public class ChallengeController extends Controller {
         return internalServerError
             ("We apologize; there seems to be a great disturbance in our "
              +"force field.\nPlease send an email to "
-             +"translator-challenge@mail.nih.gov should\n"
+             +"ncats.io-support@mail.nih.gov should\n"
              +"the problem persists.\n");
     }
 
@@ -210,9 +210,19 @@ public class ChallengeController extends Controller {
                              (part.id.toString()));
         Email email = new Email ()
             .setSubject("[Translator Challenge] Registration")
-            .setFrom("\"NCATS Translator Team\" <translator-challenge@mail.nih.gov>")
+            .setFrom("\"NCATS Translator Team\" <ncats.io-support@mail.nih.gov>")
             .addTo(part.name+" <"+part.email+">")
             .setBodyText(views.txt.registration.render(part, url).body());
+        return mailer.send(email);
+    }
+
+    String sendmail (ChallengeApp.PuzzleResult result,
+                     JsonNode json, Participant part) {
+        Email email = new Email ()
+            .setSubject("[Translator Challenge] You're almost there")
+            .setFrom("\"NCATS Translator Team\" <ncats.io-support@mail.nih.gov>")
+            .addTo(part.name+" <"+part.email+">")
+            .setBodyText("Hi "+part.name+",\n\nThank you for your submission! We just want to let you know your answer is almost correct. Please keep trying!\n\nSincerely,\nNCATS Translator Team\n\n--\n"+Json.prettyPrint(json));
         return mailer.send(email);
     }
 
@@ -252,10 +262,9 @@ public class ChallengeController extends Controller {
                                     +"please use the format:\n"+JSON_FORMAT);
 
         final String answer = json.get("answer").asText().trim();
-        final String key = app.puzzleKey;
-        final boolean correct = key.equalsIgnoreCase(answer);
+        final ChallengeApp.PuzzleResult result = app.checkPuzzle(answer);
 
-        Logger.debug(part.email+": answer=\""+answer+"\" => "+correct);
+        Logger.debug(part.email+": answer=\""+answer+"\" => "+result);
         String response = "Thank you for your submission. If your submission "
             +"is correct, you will receive an email confirmation.\n"
             +Json.prettyPrint(json)+"\n";
@@ -263,15 +272,26 @@ public class ChallengeController extends Controller {
         return repo.insertIfAbsent(part).thenApplyAsync(p -> {
                 int stage = p.stage.intValue();
                 if (stage == 0) {
-                    try {
-                        if (correct) {
+                    try {                       
+                        switch (result) {
+                        case Correct:
                             repo.nextStage(p).toCompletableFuture().join();
 
                             String mesgId = sendmail (p);
                             Logger.debug("Sending registration "+p.id+" to "
                                          +p.email+": "+mesgId);
-                        }
+                            break;
 
+                        case NotOrder:
+                        case Partial:
+                            { String id = sendmail (result, json, p);
+                              Logger.debug("Sending ("+result
+                                           +") encouragement "
+                                           +" to "+p.email+": "+id);
+                            }
+                            break;
+                        }
+                        
                         Submission sub = repo.submission
                             (p, json).toCompletableFuture().join();
 
@@ -590,5 +610,24 @@ public class ChallengeController extends Controller {
             Logger.warn("Not a valid challenge id: "+id);
             return async (redirect (routes.ChallengeController.welcome()));
         }
+    }
+
+    Result getFile (String name) {
+        try {
+            File file = env.getFile("public/resources/"+name);
+            return ok (file);
+        }
+        catch (Exception ex) {
+            Logger.error("Can't locate file for Q1!", ex);
+            return fatal ();
+        }       
+    }
+
+    public Result q1 () {
+        return getFile ("q1-disease-list.txt");
+    }
+
+    public Result q2 () {
+        return getFile ("q2-drugandcondition-list.txt");
     }
 }
