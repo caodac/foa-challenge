@@ -614,7 +614,9 @@ public class ChallengeController extends Controller {
 
     Result getFile (String name) {
         try {
-            File file = env.getFile("public/resources/"+name);
+            File file = env.getFile("conf/"+name);
+            if (!file.exists())
+                Logger.warn("File "+file+" doesn't exist!");
             return ok (file);
         }
         catch (Exception ex) {

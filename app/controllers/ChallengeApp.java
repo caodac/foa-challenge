@@ -81,6 +81,7 @@ public class ChallengeApp {
         Logger.debug("Mock mailer: "+config.getBoolean("play.mailer.mock"));
         Logger.debug("DB: "+config.getString("db.default.url"));
         Logger.debug("Secret: "+config.getString("play.http.secret.key"));
+        Logger.debug("Root Path: "+env.rootPath());
         
         if (env.isProd() && host.equals("")) {
             throw new RuntimeException
