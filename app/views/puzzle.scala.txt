@@ -5,7 +5,7 @@ Beta-defensins are antimicrobial peptides that help prevent infections. An NCATS
 
 ICVIDLAVSISFNCLIRLPVVEGGIEDPVTCLKAGAICHIVFCPRRYKQIGVCGLPGTKCCKKP
 
-In order for the peptide to work, the set of substituted residues (i.e., a ‘recognition signature’) must be recognized in a specific order, starting at specific positions, throughout the peptide. In the moment that leads to his discovery, Lothar conjectures "all roads must lead to Rome" and proceeds to resolve how the peptide presents different possible recognition signatures, beginning from different peptide residues.
+In order for the peptide to work, the set of substituted residues (i.e., a ‘recognition signature’) must be recognized in a specific order, starting at a specific residue. In the moment that leads to his discovery, Lothar conjectures "all roads must lead to Rome" and proceeds to tabulate possible recognition signatures, starting at different peptide residues, as follows:
 
  1: I
  2: CI
@@ -26,11 +26,11 @@ In order for the peptide to work, the set of substituted residues (i.e., a ‘re
 
  ....
 
-59: ^^^NOT A VALID SEQUENCE^^^
-60: ^^^NOT A VALID SEQUENCE^^^
-61: ^^^NOT A VALID SEQUENCE^^^
-62: ^^^NOT A VALID SEQUENCE^^^
-63: ^^^NOT A VALID SEQUENCE^^^
+59: ^^^NOT A VALID SIGNATURE^^^
+60: ^^^NOT A VALID SIGNATURE^^^
+61: ^^^NOT A VALID SIGNATURE^^^
+62: ^^^NOT A VALID SIGNATURE^^^
+63: ^^^NOT A VALID SIGNATURE^^^
 64: PLIVICI
 
-Can you identify the recognition signature of 18 residues necessary for target recognition by this peptide?
+Can you identify the missing 18-residue signature necessary for target recognition by this peptide?

@@ -129,21 +129,20 @@ public class ChallengeApp {
             if (m1.keySet().containsAll(m2.keySet()))
                 return PuzzleResult.NotOrder;
         }
-        else {
-            int m = ans.length()+1, n = puzzleKey.length()+1;
-            int[][] C = new int[m][n];
-            // find length of longest common substring..
-            for (int i = 1; i < m; ++i)
-                for (int j = 1; j < n; ++j) {
-                    if (ans.charAt(i-1) == puzzleKey.charAt(j-1))
-                        C[i][j] = C[i-1][j-1] + 1;
-                    else
-                        C[i][j] = Math.max(C[i][j-1], C[i-1][j]);
-                }
 
-            if (C[m-1][n-1] > puzzleKey.length()/2)
-                return PuzzleResult.Partial;
-        }
+        int m = ans.length()+1, n = puzzleKey.length()+1;
+        int[][] C = new int[m][n];
+        // find length of longest common substring..
+        for (int i = 1; i < m; ++i)
+            for (int j = 1; j < n; ++j) {
+                if (ans.charAt(i-1) == puzzleKey.charAt(j-1))
+                    C[i][j] = C[i-1][j-1] + 1;
+                else
+                    C[i][j] = Math.max(C[i][j-1], C[i-1][j]);
+            }
+        
+        if (C[m-1][n-1] > puzzleKey.length()/2)
+            return PuzzleResult.Partial;
 
         return PuzzleResult.Incorrect;
     }
