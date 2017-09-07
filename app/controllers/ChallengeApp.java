@@ -48,6 +48,7 @@ public class ChallengeApp {
     final public LocalDateTime enddate;
     final public LocalDateTime duedate;
     final public String puzzleKey;
+    final public String faq;
 
     final protected Environment env;
     final protected Configuration config;
@@ -92,6 +93,7 @@ public class ChallengeApp {
         email = config.getString("challenge.support-email", "");
         enddate = getDate (config, "challenge.end-date");
         duedate = getDate (config, "challenge.due-date");
+        faq = config.getString("challenge.faq", null);
         
         puzzleKey = config.getString("challenge.puzzle.key", null);
         if (puzzleKey == null)
@@ -100,7 +102,8 @@ public class ChallengeApp {
         Logger.debug("########### Challenge Parameters...");
         Logger.debug("Email: "+email);
         Logger.debug("End date: " + enddate);
-        Logger.debug("Due date: " + duedate);   
+        Logger.debug("Due date: " + duedate);
+        Logger.debug("FAQ: "+faq);
         
         this.env = env;
         this.config = config;

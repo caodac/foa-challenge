@@ -1,5 +1,6 @@
 @import models.Participant
-@(part: Participant, stage: Int)
+@import controllers.ChallengeController
+@(app: ChallengeController, part: Participant, stage: Int)
 <nav class="navbar navbar-default navbar-fixed-top navbar-color-on-scroll">
   <div class="container-fluid">
     <div class="navbar-header">
@@ -11,12 +12,11 @@
              href="@controllers.routes.ChallengeController.foa(part.id.toString,stage)">FOA @if(stage<8){(part @stage)}else{(full)}</a>
         }
       </span>
-
+      @if(app.app.faq != null){
       <span class="navbar-text"  style="margin-left:20px;">
-        <a class="navbar-link" target="#foa"
-           href="https://ncats.nih.gov/translator/about/faq">FAQ</a>
+        <a class="navbar-link" target="#foa" href="@app.app.faq">FAQ</a>
       </span>
-      
+      }
       <span class="navbar-text navbar-right" style="margin-left:20px;">
         <b>Concept Letter due <span id="due-date"></span></b>
       </span>
