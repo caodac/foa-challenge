@@ -1,6 +1,6 @@
 @import play.twirl.api.HtmlFormat
-@this(provider: javax.inject.Provider[controllers.ChallengeController])
-@main(provider.get(), "The Challenge")(HtmlFormat.empty){
+@(app: controllers.ChallengeController)
+@main(app, "The Challenge")(HtmlFormat.empty){
 <div class="wrapper">
   <div class="header header-filter"
        style="background-image: url('@routes.Assets.versioned("images/404.png")'); height:100vh;">
@@ -9,7 +9,7 @@
         <div class="col-md-12">
           <div class="brand" style="margin-top:30vh;">
             <h1>Turn back. This is an ill-fated voyage.</h1>
-            <h3>404 Error: File not found</h3>
+            <h3>You might want to try <code>POST</code>!</h3>
           </div>
         </div>
       </div>

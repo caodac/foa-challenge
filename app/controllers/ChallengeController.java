@@ -91,7 +91,7 @@ public class ChallengeController extends Controller {
      * <code>GET</code> request with a path of <code>/</code>.
      */
     public Result index() {
-        return ok (welcome.render());
+        return ok (views.html.index.render(this));
     }
 
     public CompletionStage<Result> challenge (final String id) {

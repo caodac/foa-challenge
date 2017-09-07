@@ -12,7 +12,8 @@ GET	/q2-drugandcondition-list	controllers.ChallengeController.q2
 ## main resources
 ##
 GET	/start	controllers.ChallengeController.puzzle
-GET     /    	controllers.ChallengeController.welcome
+GET     /    	controllers.ChallengeController.index
+GET	/404	controllers.ChallengeController.welcome
 POST	/	controllers.ChallengeController.register
 GET	/:id	controllers.ChallengeController.challenge(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
