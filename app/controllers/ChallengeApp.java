@@ -49,11 +49,14 @@ public class ChallengeApp {
     final public LocalDateTime duedate;
     final public String puzzleKey;
     final public String faq;
+    final public List<String> quotes;
 
     final protected Environment env;
     final protected Configuration config;
     final protected WSClient ws;
     final protected AsyncCacheApi cache;
+
+    final Random rand = new Random ();
 
     static LocalDateTime getDate (Configuration config, String key) {
         String date = config.getString(key, null);
@@ -94,6 +97,7 @@ public class ChallengeApp {
         enddate = getDate (config, "challenge.end-date");
         duedate = getDate (config, "challenge.due-date");
         faq = config.getString("challenge.faq", null);
+        quotes = config.getStringList("challenge.quotes", new ArrayList<>());
         
         puzzleKey = config.getString("challenge.puzzle.key", null);
         if (puzzleKey == null)
@@ -104,6 +108,7 @@ public class ChallengeApp {
         Logger.debug("End date: " + enddate);
         Logger.debug("Due date: " + duedate);
         Logger.debug("FAQ: "+faq);
+        Logger.debug("Quotes: "+quotes.size());
         
         this.env = env;
         this.config = config;
@@ -121,6 +126,10 @@ public class ChallengeApp {
         return map;
     }
 
+    public String getRandomQuote () {
+        return quotes.get(rand.nextInt(quotes.size()));
+    }
+    
     public PuzzleResult checkPuzzle (String answer) {
         String ans = answer.toUpperCase();
         if (puzzleKey.equals(ans))

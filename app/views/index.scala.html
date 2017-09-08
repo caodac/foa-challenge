@@ -1,5 +1,5 @@
 @import play.twirl.api.HtmlFormat
-@(app: controllers.ChallengeController)
+@(app: controllers.ChallengeController, mesg: String)
 @main(app, "The Challenge")(HtmlFormat.empty){
 <div class="wrapper">
   <div class="header header-filter"
@@ -8,7 +8,7 @@
       <div class="row">
         <div class="col-md-12">
           <div class="brand" style="margin-top:30vh;">
-            <h1>Turn back. This is an ill-fated voyage.</h1>
+            <h1>@mesg</h1>
             <h3>You might want to try <code>POST</code>!</h3>
           </div>
         </div>
