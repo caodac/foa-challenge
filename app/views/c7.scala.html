@@ -2,13 +2,11 @@
 
 @(app: controllers.ChallengeController, part: Participant)
 
-@main(app, "NCATS Translator Challenge") {
-    @navbar(app, part, 7)
-} {
-    @header(part, 7, "Task 6", "What should I spend my money on?")
-} {
-    @footer()
-} {
+@main(app, "NCATS Translator Challenge", part, 7){
+@header(part, 7, "Task 6", "What should I spend my money on?")
+}{
+@footer()
+}{
     <div class="section section-basic">
         <div class="section section-basic">
             <div class="container">

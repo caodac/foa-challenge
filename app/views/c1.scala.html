@@ -3,9 +3,7 @@
 
 @(app: controllers.ChallengeController, part: Participant)
 
-@main(app, "NCATS Translator Challenge"){
-@navbar(app, part, 1)
-}{
+@main(app, "NCATS Translator Challenge", part, 1){
 @header(part, 1, "Welcome", "Challenge Begins")
 }{
 @footer()

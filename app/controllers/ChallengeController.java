@@ -94,6 +94,35 @@ public class ChallengeController extends Controller {
         return ok (views.html.index.render(this, app.getRandomQuote()));
     }
 
+    public CompletionStage<Result> rank (final String id) {
+        try {
+            UUID uuid = UUID.fromString(id);
+            return repo.fetchParticipant(uuid).thenApplyAsync(part -> {
+                    if (part != null) {
+                        try {
+                            Double pct = repo.percentile(part)
+                                .toCompletableFuture().join();
+                            if (pct != null)
+                                return ok (String.format
+                                           ("%1$.1f%%", pct*100.0));
+                        }
+                        catch (Exception ex) {
+                            Logger.error("Can't calculate percentile!", ex);
+                        }
+                        return badRequest ("");
+                    }
+                    return ok (welcome.render());
+                }, httpExecutionContext.current()).exceptionally(t -> {
+                        Logger.error("Failed to fetch participant: "+id, t);
+                        return ok (welcome.render());
+                    });
+        }
+        catch (Exception ex) {
+            Logger.warn("Not a valid challenge id: "+id);
+            return async (ok (welcome.render()));
+        }           
+    }
+    
     public CompletionStage<Result> challenge (final String id) {
         try {
             UUID uuid = UUID.fromString(id);

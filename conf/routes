@@ -16,6 +16,7 @@ GET     /    	controllers.ChallengeController.index
 GET	/404	controllers.ChallengeController.welcome
 POST	/	controllers.ChallengeController.register
 GET	/:id	controllers.ChallengeController.challenge(id: String)
+GET	/:id/rank	controllers.ChallengeController.rank(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
 GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
 GET	/:id/:stage/foa	controllers.ChallengeController.foa(id: String, stage: Int)
@@ -33,4 +34,3 @@ POST	/:id/:stage	controllers.ChallengeController.submit(id: String, stage: Int)
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file  controllers.Assets.versioned(path="/public", file: Asset)
 ->	/webjars       webjars.Routes
-

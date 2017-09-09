@@ -1,6 +1,6 @@
 @import play.twirl.api.HtmlFormat
 @this(provider: javax.inject.Provider[controllers.ChallengeController])
-@main(provider.get(), "The Challenge")(HtmlFormat.empty){
+@main(provider.get(), "The Challenge"){
 <div class="wrapper">
   <div class="header header-filter"
        style="background-image: url('@routes.Assets.versioned("images/404.png")'); height:100vh;">

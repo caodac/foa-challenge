@@ -3,9 +3,7 @@
 
 @(app: controllers.ChallengeController, part: Participant)
 
-@main(app, "Congratulations!"){
-@navbar(app, part, 8)
-}{
+@main(app, "Congratulations!", part, 8){
 @header(part, 8, "Congratulations!", "Challenge completed")
 }{
 @footer()

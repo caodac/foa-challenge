@@ -2,6 +2,9 @@ package repository;
 
 import javax.persistence.*;
 import io.ebean.Ebean;
+import io.ebean.Query;
+import io.ebean.SqlQuery;
+import io.ebean.SqlRow;
 import io.ebean.EbeanServer;
 import io.ebean.Transaction;
 import io.ebean.Expr;
@@ -59,6 +62,35 @@ public class Repository {
                     submission.save();
                     tx.commit();
                     return submission.id;
+                }
+            }, executionContext);
+    }
+
+    public CompletionStage<Double> percentile (Participant part) {
+        return supplyAsync(() -> {
+                try (Transaction tx = ebeanServer.beginTransaction()) {
+                    SqlQuery query = ebeanServer.createSqlQuery
+                        ("select stage,count(*) as 'cnt' "
+                         +"from participant group by stage");
+                    int total = 0, p = 0, q = 0;
+                    // pct rank = (p + .5*q)/total where p is count
+                    //  of stage < part.stage and p is stage == part.stage
+                    for (SqlRow row : query.findList()) {
+                        Integer stage = row.getInteger("stage");
+                        Integer count = row.getInteger("cnt");
+                        if (stage < part.stage)
+                            p += count;
+                        else if (stage == part.stage)
+                            q = count; 
+                        total += count;
+                    }
+                    
+                    if (total == 0) {
+                        Logger.warn("No participant histogram!");
+                        return null;
+                    }
+
+                    return (p + 0.5*q) / total;
                 }
             }, executionContext);
     }
