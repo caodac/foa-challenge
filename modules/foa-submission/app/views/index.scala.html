@@ -1,0 +1,34 @@
+@()
+
+@main("Challenge Registration Submission") {
+<h1>Translator Challenge Registration Submission</h1>
+<form method="POST" action="@controllers.routes.HomeController.submit">
+  <table>
+    <tr>
+      <td><b>Name</b></td>
+      <td><input type="text" name="name" placeholder="Enter team name" required>
+        </td>
+    </tr>
+    <tr>
+      <td><b>Email</b></td>
+      <td><input type="text" name="email"
+                 placeholder="Enter team email" required>
+      </td>
+    </tr>
+    <tr>
+      <td><b>Answer</b></td>
+      <td><input type="text" name="answer"
+                 placeholder="Enter puzzle answer" required>
+      </td>
+    </tr>
+  </table>
+  <input type="submit"/>
+</form>
+
+<hr>
+@if(flash.containsKey("message")){
+<pre>
+@flash.get("message")
+</pre>
+}
+}
