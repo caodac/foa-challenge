@@ -237,24 +237,51 @@ public class ChallengeController extends Controller {
     String sendmail (Participant part) {
         String url = getUrl (routes.ChallengeController.challenge
                              (part.id.toString()));
-        Email email = new Email ()
-            .setSubject("[Translator Challenge] Registration")
-            .setFrom("\"NCATS Translator Team\" <ncats.io-support@mail.nih.gov>")
-            .addTo(part.name+" <"+part.email+">")
-            .setBodyText(views.txt.registration.render(part, url).body());
-        return mailer.send(email);
+        Map<String, String> mesg = new TreeMap<>();
+        mesg.put("subject", "[Translator Challenge] Registration");
+        mesg.put("from",
+                 "\"NCATS Translator Team\" <ncats.io-support@mail.nih.gov>");
+        mesg.put("to", part.name+" <"+part.email+">");
+        mesg.put("body", views.txt.registration.render(part, url).body());
+        return app.sendmail(mesg);
     }
 
     String sendmail (ChallengeApp.PuzzleResult result,
                      JsonNode json, Participant part) {
-        Email email = new Email ()
-            .setSubject("[Translator Challenge] You're almost there")
-            .setFrom("\"NCATS Translator Team\" <ncats.io-support@mail.nih.gov>")
-            .addTo(part.name+" <"+part.email+">")
-            .setBodyText("Hi "+part.name+",\n\nThank you for your submission! We just want to let you know your answer is almost correct. Please keep trying!\n\nSincerely,\nNCATS Translator Team\n\n--\n"+Json.prettyPrint(json));
-        return mailer.send(email);
+        Map<String, String> mesg = new TreeMap<>();
+        mesg.put("subject", "[Translator Challenge] You're almost there");
+        mesg.put("from",
+                 "\"NCATS Translator Team\" <ncats.io-support@mail.nih.gov>");
+        mesg.put("to", part.name+" <"+part.email+">");
+        mesg.put("body", "Hi "+part.name+",\n\nThank you for your submission! We just want to let you know your answer is almost correct. Please keep trying!\n\nSincerely,\nNCATS Translator Team\n\n--\n"+Json.prettyPrint(json));
+        return app.sendmail(mesg);
     }
 
+    @BodyParser.Of(value = BodyParser.Json.class)
+    public CompletionStage<Result> mailer () {
+        JsonNode mesg = request().body().asJson();
+        String seed = null, hash = null;
+        if (mesg.has("seed"))
+            seed = mesg.get("seed").asText();
+        if (mesg.has("hash"))
+            hash = mesg.get("hash").asText();
+        
+        if (seed == null || hash == null || !app.validateMailer(seed, hash))
+            return supplyAsync (() -> {
+                    return forbidden ("Not authorized!");
+                });
+
+        return supplyAsync (() -> {
+                Logger.debug("<<< Mailer >>>\n"+mesg);
+                Email email = new Email ()
+                    .setSubject(mesg.get("subject").asText())
+                    .setFrom(mesg.get("from").asText())
+                    .addTo(mesg.get("to").asText())
+                    .setBodyText(mesg.get("body").asText());
+                return ok (mailer.send(email));
+            }, httpExecutionContext.current());
+    }
+    
     @BodyParser.Of(value = BodyParser.AnyContent.class)
     public CompletionStage<Result> register () {
         if (app.endDateDuration() < 0) {
@@ -440,40 +467,56 @@ public class ChallengeController extends Controller {
                 body.getFile("c7assoc");
             
             if (filePart == null) {
+                /*
                 flash ("error", "No association file was provided");
                 return redirect(routes.ChallengeController.challenge(id));
-            }
-
-            File csvFile = filePart.getFile();
-            try {
-                ChallengeResponse resp = app.checkC7(part, csvFile);
-                if (resp.success > 0) {
+                */
+                try {
                     repo.nextStage(part)
                         .toCompletableFuture().join();
-                    flash ("success", "Congratulations on completing task 7!");
+                    flash ("success",
+                           "Congratulations on completing task 7!");
                 }
-                else {
-                    flash ("error", resp.message);
+                catch (Exception ex) {
+                    Logger.error
+                        ("Can't advance to next stage for "+part.id, ex);
+                    flash ("error", "Internal server error; unable "
+                           +"to advance to next stage!");
                 }
             }
-            catch (Exception ex) {
-                Logger.error
-                    ("Can't advance to next stage for "+part.id, ex);
-                flash ("error", "Internal server error; unable "
-                       +"to advance to next stage!");
+            else {
+                File csvFile = filePart.getFile();
+                try {
+                    ChallengeResponse resp = app.checkC7(part, csvFile);
+                    if (resp.success > 0) {
+                        repo.nextStage(part)
+                            .toCompletableFuture().join();
+                        flash ("success",
+                               "Congratulations on completing task 7!");
+                    }
+                    else {
+                        flash ("error", resp.message);
+                    }
+                }
+                catch (Exception ex) {
+                    Logger.error
+                        ("Can't advance to next stage for "+part.id, ex);
+                    flash ("error", "Internal server error; unable "
+                           +"to advance to next stage!");
+                }
+            
+                // save the file submission regardless
+                repo.submission(part, csvFile).thenApplyAsync(sub -> {
+                        Logger.debug(part.id+": submission "+sub.id
+                                     +" => "+csvFile);
+                        return sub;
+                    }, httpExecutionContext.current()).exceptionally(t -> {
+                            Logger.error("Failed to insert submission for "
+                                         +part.id+" "+csvFile);
+                            return null;
+                        });
             }
             
-            // save the file submission regardless
-            repo.submission(part, csvFile).thenApplyAsync(sub -> {
-                    Logger.debug(part.id+": submission "+sub.id
-                                 +" => "+csvFile);
-                    return sub;
-                }, httpExecutionContext.current()).exceptionally(t -> {
-                        Logger.error("Failed to insert submission for "
-                                     +part.id+" "+csvFile);
-                        return null;
-                    });
-                
             return redirect(routes.ChallengeController.challenge(id));
         }, httpExecutionContext.current()).exceptionally(t -> {
             Logger.error("Failed to fetch participant: " + id, t);

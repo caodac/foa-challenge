@@ -7,62 +7,67 @@
 }{
 @footer()
 }{
-    <div class="section section-basic">
-        <div class="section section-basic">
-            <div class="container">
-                <p>
-                    <i>So many associations to test, so little money ...</i>
-                </p>
-                <p>
-                    By amassing a team of motivated graduate students and a lot of coffee, a group has
-              amassed a rich dataset of 1,000,000 gene-disease associations, each one quantified by a
-              <i>knowledge score</i>. These scores represent
-              the knowlege available about the gene and disease&mdash;smaller values
-              indicate that less is known about the gene and disease, and conversely, larger values indicate
-              that the gene-disease association is well studied.
-
-              The data is available
-                    <a href="@routes.Assets.versioned("resources/gene-disease.csv.gz")">here</a> and
-                    lists the gene, disease it is associated with and the knowledge score.
-                </p>
-                <p>
-              Now the group is looking for funding to explore a subset of these associations. But they
-              don't want to study what everybody else is studying, so the group is
-                    interested in identifying the subset of associations such that
-                </p>
-                <ol>
-                    <li>the selected associations include every gene and every disease from the
-                        original dataset (there may be repetitions of a gene or disease), and</li>
-                    <li>the sum of the knowledge scores of the selected associations is minimized (correct to the second decimal place)</li>
-                </ol>
-                <p>
-                This means the subset so identified, will represent those associations which, in aggregate, 
-                have very little known about them. Can you help them? Your answer should be a CSV file
-                in the form
-                </p>
-                <pre>
-"Gene","Disease","Score"
-"G1","D1",SCORE</pre>
-                <p>where the first line is the header, and then each row is an association between a gene
-                    and a disease and the given score. Note that all text fields should be quoted
-                    using double quotes.
-                </p>
-
-                @if(part.stage==7){
-                <form class="form-inline"
-                    method="POST"
-                    enctype="multipart/form-data"
-                    action='@controllers.routes.ChallengeController.handleC7Request(part.id.toString)'>
-                    <input type="hidden" name="uuid" value="@part.id">
-                    Upload the CSV file containing the selected associations:
-                    <div class="input-group">
-                        <input type="file" name="c7assoc" accept="text/csv" placeholder="API endpoint">
-                    </div>
-                    <br><input class="btn btn-@if(part.stage > 7) {success} else {primary}"
-                type="submit"/>
-                </form>
-                }
-            </div>
+<div class="section section-basic">
+  <div class="section section-basic">
+    <div class="container">
+      <div class="alert alert-info" role="alert">
+        Completion of this task will provide you with a better understanding of the kind of capabilities we seek to have in the Translator.  However, completion of this task is optional.  You now have access to the full FOA and this task will not be part of the evaluation.
+      </div>
+      
+      <p>
+        <i>So many associations to test, so little money ...</i>
+      </p>
+      <p>
+        By amassing a team of motivated graduate students and a lot of coffee, a group has
+        amassed a rich dataset of 1,000,000 gene-disease associations, each one quantified by a
+        <i>knowledge score</i>. These scores represent
+        the knowlege available about the gene and disease&mdash;smaller values
+        indicate that less is known about the gene and disease, and conversely, larger values indicate
+        that the gene-disease association is well studied.
+        
+        The data is available
+        <a href="@routes.Assets.versioned("resources/gene-disease.csv.gz")">here</a> and
+        lists the gene, disease it is associated with and the knowledge score.
+      </p>
+      <p>
+        Now the group is looking for funding to explore a subset of these associations. But they
+        don't want to study what everybody else is studying, so the group is
+        interested in identifying the subset of associations such that
+      </p>
+      <ol>
+        <li>the selected associations include every gene and every disease from the
+          original dataset (there may be repetitions of a gene or disease), and</li>
+        <li>the sum of the knowledge scores of the selected associations is minimized (correct to the second decimal place)</li>
+      </ol>
+      <p>
+        This means the subset so identified, will represent those associations which, in aggregate, 
+        have very little known about them. Can you help them? Your answer should be a CSV file
+        in the form
+      </p>
+      <pre>
+        "Gene","Disease","Score"
+        "G1","D1",SCORE</pre>
+      <p>where the first line is the header, and then each row is an association between a gene
+        and a disease and the given score. Note that all text fields should be quoted
+        using double quotes.
+      </p>
+      
+      @if(part.stage==7){
+      <form class="form-inline"
+            method="POST"
+            enctype="multipart/form-data"
+            action='@controllers.routes.ChallengeController.handleC7Request(part.id.toString)'>
+        <input type="hidden" name="uuid" value="@part.id">
+        Upload the CSV file containing the selected associations:
+        <div class="input-group">
+          <input type="file" name="c7assoc" accept="text/csv">
+          <input type="hidden" name="c7pass" value="true">
         </div>
+        <br><input class="btn btn-@if(part.stage > 7) {success} else {primary}"
+                   type="submit"/>
+      </form>
+      }
     </div>
+  </div>
+</div>
 }
