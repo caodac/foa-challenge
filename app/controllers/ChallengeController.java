@@ -104,7 +104,7 @@ public class ChallengeController extends Controller {
                                 .toCompletableFuture().join();
                             if (pct != null)
                                 return ok (String.format
-                                           ("%1$.1f%%", pct*100.0));
+                                           ("%1$.1f", pct*100.0));
                         }
                         catch (Exception ex) {
                             Logger.error("Can't calculate percentile!", ex);

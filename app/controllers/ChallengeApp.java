@@ -48,11 +48,13 @@ public class ChallengeApp {
         Partial,
         Incorrect
     }
+
+    static final ZoneId EDT = ZoneId.of("America/New_York");
     
     final public int maxStage;
     final public String email;
-    final public LocalDateTime enddate;
-    final public LocalDateTime duedate;
+    final public ZonedDateTime enddate;
+    final public ZonedDateTime duedate;
     final public String puzzleKey;
     final public String faq;
     final public List<String> quotes;
@@ -70,16 +72,16 @@ public class ChallengeApp {
     final char[] SEED = {'a','b','c','d','e','f','1','2','3','4','5','6',
                          '7','8','9'};
     
-    static LocalDateTime getDate (Configuration config, String key) {
+    static ZonedDateTime getDate (Configuration config, String key) {
         String date = config.getString(key, null);
-        LocalDateTime d = null; 
+        ZonedDateTime d = null; 
         if (date != null) {
             try {
-                d = LocalDateTime.parse(date);
+                d = ZonedDateTime.of(LocalDateTime.parse(date), EDT);
             }
             catch (Exception ex) {
                 Logger.error("Bad date format: "+date, ex);
-                d = LocalDateTime.now().plusDays(7);
+                d = ZonedDateTime.now().plusDays(7);
             }
         }
         return d;
@@ -643,11 +645,11 @@ public class ChallengeApp {
     }
 
     public long endDateDuration () {
-        return LocalDateTime.now().until(enddate, ChronoUnit.SECONDS);
+        return ZonedDateTime.now(EDT).until(enddate, ChronoUnit.SECONDS);
     }
     
     public long dueDateDuration () {
-        return LocalDateTime.now().until(duedate, ChronoUnit.SECONDS);
+        return ZonedDateTime.now(EDT).until(duedate, ChronoUnit.SECONDS);
     }
     
     public Configuration config () { return config; }

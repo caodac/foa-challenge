@@ -57,11 +57,25 @@
     
 <script>    
     $(document).ready(function () {
-        console.log('starting timer...');
         
         var dur = @app.app.dueDateDuration;
-        var timer = new CountDownTimer (dur, 10000);
-        timer.onTick(formatCounter).start();
+	console.log('challenge duration: '+dur);
+	if (dur > 0) {
+            var timer = new CountDownTimer (dur, 60000);
+            timer.onTick(formatCounter).start();
+	}
+	else {
+	    $('#concept-letter').html(''); // clear this out..
+	    @if(part!=null){
+		$.ajax({
+                    url: '@controllers.routes.ChallengeController.rank(part.id.toString)',
+                    dataType:'text',
+                    success: function(t) {
+			$('#rank-pct').text(t);
+                    }
+		});
+	    }
+	}
 
         function formatCounter(days,hours,minutes,seconds) {
             if (days > 0) {
