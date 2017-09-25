@@ -19,7 +19,7 @@
   </head>
     <body class="index-page">
     @if(part!=null){
-	@navbar(app, part, stage)
+        @navbar(app, part, stage)
     }
     @header
     <div class="main main-raised">
@@ -59,23 +59,22 @@
     $(document).ready(function () {
         
         var dur = @app.app.dueDateDuration;
-	console.log('challenge duration: '+dur);
-	if (dur > 0) {
+        console.log('challenge duration: '+dur);
+        if (dur > 0) {
             var timer = new CountDownTimer (dur, 60000);
             timer.onTick(formatCounter).start();
-	}
-	else {
-	    $('#concept-letter').html(''); // clear this out..
-	    @if(part!=null){
-		$.ajax({
+        }
+        else {
+            @if(part!=null){
+                $.ajax({
                     url: '@controllers.routes.ChallengeController.rank(part.id.toString)',
                     dataType:'text',
                     success: function(t) {
-			$('#rank-pct').text(t);
+                        $('#rank-pct').text(t);
                     }
-		});
-	    }
-	}
+                });
+            }
+        }
 
         function formatCounter(days,hours,minutes,seconds) {
             if (days > 0) {
@@ -112,15 +111,15 @@
                 $('#due-date').html('Now!');
             }
             //console.log('d='+days+' h='+hours+' m='+minutes+' s='+seconds);
-	    @if(part!=null){
-		$.ajax({
+            @if(part!=null){
+                $.ajax({
                     url: '@controllers.routes.ChallengeController.rank(part.id.toString)',
                     dataType:'text',
                     success: function(t) {
-			$('#rank-pct').text(t);
+                        $('#rank-pct').text(t);
                     }
-		});
-	    }
+                });
+            }
         }
     });
 </script>

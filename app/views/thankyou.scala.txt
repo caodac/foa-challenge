@@ -1,0 +1,14 @@
+@(part: models.Participant)
+Dear @part.name,
+
+Thank you for your participation in the NCATS Translator Challenge! We hope the challenge gives you a good overview of the Translator program. In the spirit of full disclosure, we want to let you know that the source code to the challenge is now available:
+
+https://spotlite.nih.gov/translator/foa-challenge
+@if(part.stage<8){
+If you're curious about the individual tasks in the challenge, feel free to use this URL:
+
+https://ncats.io/challenge/aae8d287-0eb3-410d-a652-b166f83b747b
+}
+
+Best regards,
+NCATS Translator Team

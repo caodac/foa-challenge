@@ -20,7 +20,7 @@ GET	/:id/rank	controllers.ChallengeController.rank(id: String)
 GET	/:id/	controllers.ChallengeController.challenge(id: String)
 GET	/:id/:stage	controllers.ChallengeController.stage(id: String, stage: Int)
 GET	/:id/:stage/foa	controllers.ChallengeController.foa(id: String, stage: Int)
-POST	/mailer	controllers.ChallengeController.mailer
+##POST	/mailer	controllers.ChallengeController.mailer
 
 #
 # should really figure out how to properly handle CSRF filter

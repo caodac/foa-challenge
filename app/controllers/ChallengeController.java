@@ -283,11 +283,7 @@ public class ChallengeController extends Controller {
     }
     
     @BodyParser.Of(value = BodyParser.AnyContent.class)
-    public CompletionStage<Result> register () {
-        if (app.endDateDuration() < 0) {
-            return badRequestAsync ("Sorry, the challenge is now closed!");
-        }
-        
+    public CompletionStage<Result> register () {        
         JsonNode json = request().body().asJson();
         Logger.debug(">>> "+json);
         if (json == null)
@@ -319,6 +315,13 @@ public class ChallengeController extends Controller {
 
         final String answer = json.get("answer").asText().trim();
         final ChallengeApp.PuzzleResult result = app.checkPuzzle(answer);
+
+        if (app.endDateDuration() < 0) {
+            return async (ok ("Sorry, the challenge is now closed; "
+                              +"your answer is "
+                              +(result==ChallengeApp.PuzzleResult.Correct
+                                ? "CORRECT!":"INCORRECT.")));
+        }
 
         Logger.debug(part.email+": answer=\""+answer+"\" => "+result);
         String response = "Thank you for your submission. If your submission "

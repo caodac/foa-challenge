@@ -12,14 +12,23 @@
              href="@controllers.routes.ChallengeController.foa(part.id.toString,stage)">FOA @if(stage<8){(part @stage)}else{(full)}</a>
         }
       </span>
+      @if(app.app.dueDateDuration<0){
+      <span class="navbar-text"  style="margin-left:20px;">
+        <a class="navbar-link" target="#foa" href="https://spotlite.nih.gov/translator/foa-challenge">Source Code</a>
+      </span>
+      }else{
       @if(app.app.faq != null){
       <span class="navbar-text"  style="margin-left:20px;">
         <a class="navbar-link" target="#foa" href="@app.app.faq">FAQ</a>
       </span>
-      }
+      }}
       <span id="concept-letter"
             class="navbar-text navbar-right" style="margin-left:20px;">
+        @if(app.app.dueDateDuration<0){
+        <b>CHALLENGE IS NOW CLOSED!</b>
+        }else{
         <b>Concept Letter due <span id="due-date"></span></b>
+        }
       </span>
     </div>
   </div>
